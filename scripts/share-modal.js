@@ -260,7 +260,7 @@ const createShareModal = (card, shareUrl) => {
     return modal;
 };
 
-// Gerar QR Code
+// Gerar QR Code usando canvas (funciona offline e não é bloqueado por AdBlock)
 const generateQRCode = (url) => {
     console.log('📱 Gerando QR Code para URL:', url);
     
@@ -273,52 +273,88 @@ const generateQRCode = (url) => {
     container.innerHTML = '<div style="text-align: center; padding: 1rem;"><i class="fas fa-spinner fa-spin" style="font-size: 2rem; color: #3b82f6;"></i><br/><small>Gerando...</small></div>';
     
     try {
-        console.log('🌐 Usando API para gerar QR Code...');
-        
-        // Usar API do QR Server para gerar QR code (não requer biblioteca)
-        const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(url)}`;
-        
-        const img = document.createElement('img');
-        img.src = qrApiUrl;
-        img.alt = 'QR Code';
-        img.style.width = '200px';
-        img.style.height = '200px';
-        img.style.borderRadius = '0.5rem';
-        img.style.cursor = 'pointer';
-        img.style.boxShadow = '0 4px 6px rgba(0,0,0,0.1)';
-        img.title = 'Clique para testar o QR Code';
-        
-        img.onload = () => {
-            console.log('✅ QR Code gerado com sucesso via API');
-            container.innerHTML = '';
-            container.appendChild(img);
+        // Verificar se a biblioteca QRCode está disponível
+        if (typeof QRCode === 'undefined') {
+            console.error('❌ Biblioteca QRCode não carregada');
             
-            // Adicionar evento de clique para testar
-            img.addEventListener('click', () => {
-                console.log('🔍 Testando QR Code - abrindo URL:', url);
-                window.open(url, '_blank');
-            });
-        };
-        
-        img.onerror = () => {
-            console.error('❌ Erro ao carregar QR Code da API');
-            container.innerHTML = `
-                <div style="width: 200px; height: 200px; background: #FEF2F2; border: 2px solid #FECACA; border-radius: 0.5rem; display: flex; align-items: center; justify-content: center; color: #DC2626; text-align: center; padding: 1rem;">
-                    <div>
-                        <i class="fas fa-exclamation-circle" style="font-size: 2rem; margin-bottom: 0.5rem;"></i><br/>
-                        Erro ao gerar<br/>QR Code
+            // Fallback: usar API como segunda opção
+            console.log('🔄 Tentando API como fallback...');
+            const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(url)}`;
+            
+            const img = document.createElement('img');
+            img.src = qrApiUrl;
+            img.alt = 'QR Code';
+            img.style.cssText = 'width: 200px; height: 200px; border-radius: 0.5rem; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1);';
+            img.title = 'Clique para testar o QR Code';
+            
+            img.onload = () => {
+                console.log('✅ QR Code gerado com sucesso via API (fallback)');
+                container.innerHTML = '';
+                container.appendChild(img);
+                img.addEventListener('click', () => window.open(url, '_blank'));
+            };
+            
+            img.onerror = () => {
+                console.error('❌ API também falhou (bloqueador de anúncios?)');
+                container.innerHTML = `
+                    <div style="width: 200px; height: 200px; background: #FEF9E6; border: 2px solid #FCD34D; border-radius: 0.5rem; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #92400E; text-align: center; padding: 1rem;">
+                        <i class="fas fa-shield-alt" style="font-size: 2rem; margin-bottom: 0.5rem;"></i>
+                        <strong>Bloqueador Ativo</strong>
+                        <small style="margin-top: 0.5rem;">Desabilite o AdBlock para ver o QR Code</small>
+                        <button onclick="window.open('${url}', '_blank')" style="margin-top: 1rem; padding: 0.5rem 1rem; background: #3b82f6; color: white; border: none; border-radius: 0.375rem; cursor: pointer; font-size: 0.875rem;">
+                            Abrir Link
+                        </button>
                     </div>
-                </div>
-            `;
-        };
+                `;
+            };
+            return;
+        }
+        
+        console.log('✅ Biblioteca QRCode disponível, gerando...');
+        
+        // Limpar container e criar canvas
+        container.innerHTML = '';
+        
+        // Criar QR Code usando canvas
+        new QRCode(container, {
+            text: url,
+            width: 200,
+            height: 200,
+            colorDark: '#000000',
+            colorLight: '#ffffff',
+            correctLevel: QRCode.CorrectLevel.M
+        });
+        
+        console.log('✅ QR Code gerado com sucesso via biblioteca local');
+        
+        // Adicionar estilo e clique ao canvas
+        setTimeout(() => {
+            const canvas = container.querySelector('canvas');
+            const img = container.querySelector('img');
+            
+            if (canvas) {
+                canvas.style.cssText = 'border-radius: 0.5rem; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1);';
+                canvas.title = 'Clique para testar o QR Code';
+                canvas.addEventListener('click', () => {
+                    console.log('🔍 Testando QR Code - abrindo URL:', url);
+                    window.open(url, '_blank');
+                });
+            }
+            
+            if (img) {
+                img.style.cssText = 'border-radius: 0.5rem; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1); display: none;';
+            }
+        }, 100);
+        
     } catch (error) {
         console.error('❌ Erro ao gerar QR Code:', error);
         container.innerHTML = `
-            <div style="width: 200px; height: 200px; background: #FEF2F2; border: 2px solid #FECACA; border-radius: 0.5rem; display: flex; align-items: center; justify-content: center; color: #DC2626; text-align: center; padding: 1rem;">
-                <div>
-                    <i class="fas fa-exclamation-circle" style="font-size: 2rem; margin-bottom: 0.5rem;"></i><br/>
-                    Erro ao gerar<br/>QR Code
-                </div>
+            <div style="width: 200px; height: 200px; background: #FEF2F2; border: 2px solid #FECACA; border-radius: 0.5rem; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #DC2626; text-align: center; padding: 1rem;">
+                <i class="fas fa-exclamation-circle" style="font-size: 2rem; margin-bottom: 0.5rem;"></i>
+                <strong>Erro ao gerar</strong>
+                <button onclick="window.open('${url}', '_blank')" style="margin-top: 1rem; padding: 0.5rem 1rem; background: #3b82f6; color: white; border: none; border-radius: 0.375rem; cursor: pointer; font-size: 0.875rem;">
+                    Abrir Link
+                </button>
             </div>
         `;
     }
