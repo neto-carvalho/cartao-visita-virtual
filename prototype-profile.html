@@ -1,0 +1,992 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Protótipo - Perfil de Usuário | Cartão Virtual</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #3B82F6;
+            --primary-dark: #2563EB;
+            --secondary: #8B5CF6;
+            --success: #10B981;
+            --danger: #EF4444;
+            --warning: #F59E0B;
+            --gray-50: #F9FAFB;
+            --gray-100: #F3F4F6;
+            --gray-200: #E5E7EB;
+            --gray-300: #D1D5DB;
+            --gray-400: #9CA3AF;
+            --gray-500: #6B7280;
+            --gray-600: #4B5563;
+            --gray-700: #374151;
+            --gray-800: #1F2937;
+            --gray-900: #111827;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--gray-50);
+            color: var(--gray-800);
+        }
+
+        .container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* ========== SIDEBAR ========== */
+        .sidebar {
+            width: 280px;
+            background: white;
+            border-right: 1px solid var(--gray-200);
+            padding: 2rem 0;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            transition: transform 0.3s ease;
+        }
+
+        .sidebar-header {
+            padding: 0 1.5rem 2rem;
+            border-bottom: 1px solid var(--gray-200);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 700;
+            font-size: 1.5rem;
+            color: var(--primary);
+        }
+
+        .logo i {
+            font-size: 2rem;
+        }
+
+        .user-profile {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--gray-200);
+        }
+
+        .user-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin: 0 auto 1rem;
+        }
+
+        .user-info {
+            text-align: center;
+        }
+
+        .user-name {
+            font-weight: 600;
+            font-size: 1.1rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .user-email {
+            color: var(--gray-500);
+            font-size: 0.875rem;
+        }
+
+        .nav-menu {
+            padding: 1.5rem 0;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.875rem 1.5rem;
+            color: var(--gray-600);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border-left: 3px solid transparent;
+        }
+
+        .nav-item:hover {
+            background: var(--gray-50);
+            color: var(--primary);
+            border-left-color: var(--primary);
+        }
+
+        .nav-item.active {
+            background: var(--primary);
+            color: white;
+            border-left-color: var(--primary-dark);
+        }
+
+        .nav-item i {
+            font-size: 1.25rem;
+            width: 24px;
+        }
+
+        /* ========== MAIN CONTENT ========== */
+        .main-content {
+            flex: 1;
+            margin-left: 280px;
+            padding: 2rem;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .header h1 {
+            font-family: 'Poppins', sans-serif;
+            font-size: 2rem;
+            color: var(--gray-900);
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+        }
+
+        /* ========== STATS CARDS ========== */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 1rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+        }
+
+        .stat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        .stat-icon.blue {
+            background: rgba(59, 130, 246, 0.1);
+            color: var(--primary);
+        }
+
+        .stat-icon.green {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+        }
+
+        .stat-icon.purple {
+            background: rgba(139, 92, 246, 0.1);
+            color: var(--secondary);
+        }
+
+        .stat-icon.orange {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--warning);
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--gray-900);
+        }
+
+        .stat-label {
+            color: var(--gray-500);
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+        }
+
+        .stat-change {
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+        }
+
+        .stat-change.positive {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+        }
+
+        /* ========== CARDS SECTION ========== */
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .search-filter {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .search-box {
+            position: relative;
+        }
+
+        .search-box input {
+            padding: 0.75rem 1rem 0.75rem 2.75rem;
+            border: 1px solid var(--gray-300);
+            border-radius: 0.5rem;
+            width: 300px;
+            font-size: 0.875rem;
+        }
+
+        .search-box i {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--gray-400);
+        }
+
+        .filter-btn {
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--gray-300);
+            background: white;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--gray-600);
+            font-weight: 500;
+        }
+
+        .filter-btn:hover {
+            background: var(--gray-50);
+        }
+
+        /* ========== CARDS GRID ========== */
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .card-item {
+            background: white;
+            border-radius: 1rem;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .card-item:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15);
+        }
+
+        .card-preview {
+            height: 200px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card-preview.pink {
+            background: linear-gradient(135deg, #FF6B9D, #C44569);
+        }
+
+        .card-preview.blue {
+            background: linear-gradient(135deg, #00BFFF, #1E90FF);
+        }
+
+        .card-preview.green {
+            background: linear-gradient(135deg, #10B981, #059669);
+        }
+
+        .card-status {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            padding: 0.375rem 0.75rem;
+            border-radius: 1rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            backdrop-filter: blur(10px);
+        }
+
+        .card-status.active {
+            background: rgba(16, 185, 129, 0.9);
+            color: white;
+        }
+
+        .card-status.inactive {
+            background: rgba(107, 114, 128, 0.9);
+            color: white;
+        }
+
+        .card-favorite {
+            position: absolute;
+            top: 1rem;
+            left: 1rem;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .card-favorite:hover {
+            background: rgba(255, 255, 255, 0.5);
+            transform: scale(1.1);
+        }
+
+        .card-favorite.starred {
+            background: var(--warning);
+        }
+
+        .card-info {
+            padding: 1.25rem;
+        }
+
+        .card-name {
+            font-size: 1.125rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--gray-900);
+        }
+
+        .card-meta {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            font-size: 0.875rem;
+            color: var(--gray-500);
+        }
+
+        .card-meta-item {
+            display: flex;
+            align-items: center;
+            gap: 0.375rem;
+        }
+
+        .card-stats {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.75rem 0;
+            border-top: 1px solid var(--gray-200);
+            border-bottom: 1px solid var(--gray-200);
+            margin-bottom: 1rem;
+        }
+
+        .card-stat {
+            text-align: center;
+        }
+
+        .card-stat-number {
+            font-weight: 700;
+            font-size: 1.125rem;
+            color: var(--gray-900);
+        }
+
+        .card-stat-label {
+            font-size: 0.75rem;
+            color: var(--gray-500);
+            margin-top: 0.25rem;
+        }
+
+        .card-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .card-action-btn {
+            flex: 1;
+            padding: 0.625rem;
+            border: 1px solid var(--gray-300);
+            background: white;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.375rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--gray-600);
+            transition: all 0.3s ease;
+        }
+
+        .card-action-btn:hover {
+            background: var(--gray-50);
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .card-action-btn.primary {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .card-action-btn.primary:hover {
+            background: var(--primary-dark);
+        }
+
+        /* ========== EMPTY STATE ========== */
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            background: white;
+            border-radius: 1rem;
+        }
+
+        .empty-icon {
+            font-size: 4rem;
+            color: var(--gray-300);
+            margin-bottom: 1rem;
+        }
+
+        .empty-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .empty-text {
+            color: var(--gray-500);
+            margin-bottom: 2rem;
+        }
+
+        /* ========== MOBILE MENU ========== */
+        .mobile-menu-btn {
+            display: none;
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: var(--primary);
+            color: white;
+            border: none;
+            box-shadow: 0 8px 24px rgba(59, 130, 246, 0.4);
+            font-size: 1.5rem;
+            cursor: pointer;
+            z-index: 1000;
+        }
+
+        /* ========== RESPONSIVE ========== */
+        @media (max-width: 1024px) {
+            .sidebar {
+                transform: translateX(-100%);
+                z-index: 999;
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-left: 0;
+            }
+
+            .mobile-menu-btn {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .cards-grid {
+                grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            }
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                padding: 1rem;
+            }
+
+            .header {
+                flex-direction: column;
+                gap: 1rem;
+                align-items: flex-start;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .search-filter {
+                flex-direction: column;
+                width: 100%;
+            }
+
+            .search-box input {
+                width: 100%;
+            }
+
+            .cards-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* ========== BADGE ========== */
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.625rem;
+            border-radius: 0.375rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .badge-primary {
+            background: rgba(59, 130, 246, 0.1);
+            color: var(--primary);
+        }
+
+        /* ========== NOTE ========== */
+        .prototype-note {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            background: var(--warning);
+            color: white;
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+            z-index: 9999;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+    </style>
+</head>
+<body>
+    <!-- Nota de Protótipo -->
+    <div class="prototype-note">
+        <i class="fas fa-lightbulb"></i> PROTÓTIPO VISUAL
+    </div>
+
+    <div class="container">
+        <!-- ========== SIDEBAR ========== -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <i class="fas fa-id-card"></i>
+                    <span>Cartão Virtual</span>
+                </div>
+            </div>
+
+            <div class="user-profile">
+                <div class="user-avatar">
+                    JS
+                </div>
+                <div class="user-info">
+                    <div class="user-name">João Silva</div>
+                    <div class="user-email">joao@email.com</div>
+                </div>
+            </div>
+
+            <nav class="nav-menu">
+                <a href="#" class="nav-item active">
+                    <i class="fas fa-th-large"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="#" class="nav-item">
+                    <i class="fas fa-id-card-alt"></i>
+                    <span>Meus Cartões</span>
+                </a>
+                <a href="#" class="nav-item">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Estatísticas</span>
+                </a>
+                <a href="#" class="nav-item">
+                    <i class="fas fa-star"></i>
+                    <span>Favoritos</span>
+                </a>
+                <a href="#" class="nav-item">
+                    <i class="fas fa-share-alt"></i>
+                    <span>Compartilhados</span>
+                </a>
+                <a href="#" class="nav-item">
+                    <i class="fas fa-cog"></i>
+                    <span>Configurações</span>
+                </a>
+                <a href="#" class="nav-item">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Sair</span>
+                </a>
+            </nav>
+        </aside>
+
+        <!-- ========== MAIN CONTENT ========== -->
+        <main class="main-content">
+            <!-- Header -->
+            <div class="header">
+                <div>
+                    <h1>Bem-vindo, João! 👋</h1>
+                    <p style="color: var(--gray-500); margin-top: 0.25rem;">Gerencie seus cartões de visita digitais</p>
+                </div>
+                <a href="editor.html" class="btn btn-primary">
+                    <i class="fas fa-plus"></i>
+                    Criar Novo Cartão
+                </a>
+            </div>
+
+            <!-- Stats Grid -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div>
+                            <div class="stat-number">8</div>
+                            <div class="stat-label">Total de Cartões</div>
+                        </div>
+                        <div class="stat-icon blue">
+                            <i class="fas fa-id-card"></i>
+                        </div>
+                    </div>
+                    <span class="stat-change positive">
+                        <i class="fas fa-arrow-up"></i> +2 este mês
+                    </span>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div>
+                            <div class="stat-number">1.2k</div>
+                            <div class="stat-label">Visualizações</div>
+                        </div>
+                        <div class="stat-icon green">
+                            <i class="fas fa-eye"></i>
+                        </div>
+                    </div>
+                    <span class="stat-change positive">
+                        <i class="fas fa-arrow-up"></i> +15% esta semana
+                    </span>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div>
+                            <div class="stat-number">345</div>
+                            <div class="stat-label">Compartilhamentos</div>
+                        </div>
+                        <div class="stat-icon purple">
+                            <i class="fas fa-share-alt"></i>
+                        </div>
+                    </div>
+                    <span class="stat-change positive">
+                        <i class="fas fa-arrow-up"></i> +8% hoje
+                    </span>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div>
+                            <div class="stat-number">89</div>
+                            <div class="stat-label">Contatos Salvos</div>
+                        </div>
+                        <div class="stat-icon orange">
+                            <i class="fas fa-address-book"></i>
+                        </div>
+                    </div>
+                    <span class="stat-change positive">
+                        <i class="fas fa-arrow-up"></i> +12 hoje
+                    </span>
+                </div>
+            </div>
+
+            <!-- Cards Section -->
+            <div class="section-header">
+                <h2 class="section-title">Meus Cartões</h2>
+                <div class="search-filter">
+                    <div class="search-box">
+                        <i class="fas fa-search"></i>
+                        <input type="text" placeholder="Pesquisar cartões...">
+                    </div>
+                    <button class="filter-btn">
+                        <i class="fas fa-filter"></i>
+                        Filtrar
+                    </button>
+                </div>
+            </div>
+
+            <!-- Cards Grid -->
+            <div class="cards-grid">
+                <!-- Card 1 -->
+                <div class="card-item">
+                    <div class="card-preview pink">
+                        <div class="card-favorite starred">
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <div class="card-status active">
+                            <i class="fas fa-check-circle"></i> Ativo
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="width: 80px; height: 80px; background: rgba(255,255,255,0.3); border-radius: 50%; margin: 0 auto 1rem; display: flex; align-items: center; justify-content: center; font-size: 2rem;">
+                                👨‍💼
+                            </div>
+                            <h3 style="font-size: 1.25rem; margin-bottom: 0.5rem;">João Silva</h3>
+                            <p style="opacity: 0.9;">Designer Gráfico</p>
+                        </div>
+                    </div>
+                    <div class="card-info">
+                        <h3 class="card-name">Cartão Profissional</h3>
+                        <div class="card-meta">
+                            <span class="card-meta-item">
+                                <i class="fas fa-calendar"></i>
+                                15 Jan 2024
+                            </span>
+                            <span class="badge badge-primary">Principal</span>
+                        </div>
+                        <div class="card-stats">
+                            <div class="card-stat">
+                                <div class="card-stat-number">432</div>
+                                <div class="card-stat-label">Visualizações</div>
+                            </div>
+                            <div class="card-stat">
+                                <div class="card-stat-number">89</div>
+                                <div class="card-stat-label">Compartilhamentos</div>
+                            </div>
+                            <div class="card-stat">
+                                <div class="card-stat-number">23</div>
+                                <div class="card-stat-label">Contatos</div>
+                            </div>
+                        </div>
+                        <div class="card-actions">
+                            <button class="card-action-btn primary">
+                                <i class="fas fa-eye"></i>
+                                Ver
+                            </button>
+                            <button class="card-action-btn">
+                                <i class="fas fa-edit"></i>
+                                Editar
+                            </button>
+                            <button class="card-action-btn">
+                                <i class="fas fa-share-alt"></i>
+                            </button>
+                            <button class="card-action-btn">
+                                <i class="fas fa-ellipsis-v"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 2 -->
+                <div class="card-item">
+                    <div class="card-preview blue">
+                        <div class="card-favorite">
+                            <i class="far fa-star"></i>
+                        </div>
+                        <div class="card-status active">
+                            <i class="fas fa-check-circle"></i> Ativo
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="width: 80px; height: 80px; background: rgba(255,255,255,0.3); border-radius: 50%; margin: 0 auto 1rem; display: flex; align-items: center; justify-content: center; font-size: 2rem;">
+                                🏢
+                            </div>
+                            <h3 style="font-size: 1.25rem; margin-bottom: 0.5rem;">João Silva</h3>
+                            <p style="opacity: 0.9;">CEO - Tech Solutions</p>
+                        </div>
+                    </div>
+                    <div class="card-info">
+                        <h3 class="card-name">Cartão Corporativo</h3>
+                        <div class="card-meta">
+                            <span class="card-meta-item">
+                                <i class="fas fa-calendar"></i>
+                                20 Jan 2024
+                            </span>
+                        </div>
+                        <div class="card-stats">
+                            <div class="card-stat">
+                                <div class="card-stat-number">298</div>
+                                <div class="card-stat-label">Visualizações</div>
+                            </div>
+                            <div class="card-stat">
+                                <div class="card-stat-number">56</div>
+                                <div class="card-stat-label">Compartilhamentos</div>
+                            </div>
+                            <div class="card-stat">
+                                <div class="card-stat-number">18</div>
+                                <div class="card-stat-label">Contatos</div>
+                            </div>
+                        </div>
+                        <div class="card-actions">
+                            <button class="card-action-btn primary">
+                                <i class="fas fa-eye"></i>
+                                Ver
+                            </button>
+                            <button class="card-action-btn">
+                                <i class="fas fa-edit"></i>
+                                Editar
+                            </button>
+                            <button class="card-action-btn">
+                                <i class="fas fa-share-alt"></i>
+                            </button>
+                            <button class="card-action-btn">
+                                <i class="fas fa-ellipsis-v"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 3 -->
+                <div class="card-item">
+                    <div class="card-preview green">
+                        <div class="card-favorite">
+                            <i class="far fa-star"></i>
+                        </div>
+                        <div class="card-status inactive">
+                            <i class="fas fa-pause-circle"></i> Inativo
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="width: 80px; height: 80px; background: rgba(255,255,255,0.3); border-radius: 50%; margin: 0 auto 1rem; display: flex; align-items: center; justify-content: center; font-size: 2rem;">
+                                🎨
+                            </div>
+                            <h3 style="font-size: 1.25rem; margin-bottom: 0.5rem;">João Silva</h3>
+                            <p style="opacity: 0.9;">Freelancer</p>
+                        </div>
+                    </div>
+                    <div class="card-info">
+                        <h3 class="card-name">Cartão Freelance</h3>
+                        <div class="card-meta">
+                            <span class="card-meta-item">
+                                <i class="fas fa-calendar"></i>
+                                10 Dez 2023
+                            </span>
+                        </div>
+                        <div class="card-stats">
+                            <div class="card-stat">
+                                <div class="card-stat-number">145</div>
+                                <div class="card-stat-label">Visualizações</div>
+                            </div>
+                            <div class="card-stat">
+                                <div class="card-stat-number">32</div>
+                                <div class="card-stat-label">Compartilhamentos</div>
+                            </div>
+                            <div class="card-stat">
+                                <div class="card-stat-number">9</div>
+                                <div class="card-stat-label">Contatos</div>
+                            </div>
+                        </div>
+                        <div class="card-actions">
+                            <button class="card-action-btn primary">
+                                <i class="fas fa-eye"></i>
+                                Ver
+                            </button>
+                            <button class="card-action-btn">
+                                <i class="fas fa-edit"></i>
+                                Editar
+                            </button>
+                            <button class="card-action-btn">
+                                <i class="fas fa-share-alt"></i>
+                            </button>
+                            <button class="card-action-btn">
+                                <i class="fas fa-ellipsis-v"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Mobile Menu Button -->
+    <button class="mobile-menu-btn" onclick="toggleSidebar()">
+        <i class="fas fa-bars"></i>
+    </button>
+
+    <script>
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('open');
+        }
+
+        // Fechar sidebar ao clicar fora (mobile)
+        document.addEventListener('click', (e) => {
+            const sidebar = document.getElementById('sidebar');
+            const menuBtn = document.querySelector('.mobile-menu-btn');
+            
+            if (window.innerWidth <= 1024) {
+                if (!sidebar.contains(e.target) && !menuBtn.contains(e.target)) {
+                    sidebar.classList.remove('open');
+                }
+            }
+        });
+    </script>
+</body>
+</html>
+

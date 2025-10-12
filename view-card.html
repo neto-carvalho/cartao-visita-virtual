@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cartão de Visita | Cartão Virtual</title>
+    
+    <!-- Fonts -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem 1rem;
+        }
+
+        .card-container {
+            max-width: 420px;
+            width: 100%;
+            background: white;
+            border-radius: 25px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .card-content {
+            padding: 3rem 2rem 2rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            min-height: 600px;
+            color: white;
+        }
+
+        .profile-image {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+            margin-bottom: 1.5rem;
+        }
+
+        .profile-image.placeholder {
+            background: rgba(255, 255, 255, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+        }
+
+        .name {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .job-title {
+            font-size: 1.25rem;
+            font-weight: 500;
+            opacity: 0.95;
+            margin-bottom: 1rem;
+        }
+
+        .description {
+            font-size: 1rem;
+            opacity: 0.9;
+            margin-bottom: 1.5rem;
+            line-height: 1.5;
+        }
+
+        .save-contact-btn {
+            margin: 1.5rem 0;
+            padding: 12px 30px;
+            background: rgba(255, 255, 255, 0.25);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50px;
+            color: white;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .save-contact-btn:hover {
+            background: rgba(255, 255, 255, 0.35);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .contact-info {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+            width: 100%;
+            max-width: 320px;
+        }
+
+        .contact-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 12px;
+            color: white;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .contact-item:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: translateX(5px);
+        }
+
+        .contact-item i {
+            font-size: 1.25rem;
+        }
+
+        .link-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            width: 100%;
+            max-width: 320px;
+        }
+
+        .link-button {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 1rem;
+            padding: 1rem 1.5rem;
+            border-radius: 50px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+        }
+
+        .link-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.25);
+            filter: brightness(1.05);
+        }
+
+        .link-icon {
+            font-size: 1.25rem;
+            width: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .link-text {
+            font-weight: 600;
+            font-size: 1rem;
+            flex: 1;
+            text-align: left;
+        }
+
+        .feature-section {
+            margin: 1.5rem 0;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 20px;
+            padding: 1.5rem;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            width: 100%;
+            max-width: 320px;
+            text-align: left;
+        }
+
+        .feature-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 0.75rem;
+        }
+
+        .feature-description {
+            font-size: 0.95rem;
+            line-height: 1.5;
+            margin-bottom: 1rem;
+            opacity: 0.95;
+        }
+
+        .feature-image {
+            width: 100%;
+            border-radius: 15px;
+            margin: 1rem 0;
+        }
+
+        .feature-action-btn {
+            background: white;
+            color: #333;
+            padding: 10px 24px;
+            border: none;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+        }
+
+        .feature-action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.25);
+        }
+
+        .footer {
+            padding: 1.5rem;
+            text-align: center;
+            background: rgba(0, 0, 0, 0.05);
+        }
+
+        .footer a {
+            color: rgba(255, 255, 255, 0.7);
+            text-decoration: none;
+            font-size: 0.875rem;
+            transition: color 0.3s ease;
+        }
+
+        .footer a:hover {
+            color: white;
+        }
+
+        .error-state {
+            text-align: center;
+            padding: 3rem 2rem;
+        }
+
+        .error-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        .error-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .error-text {
+            opacity: 0.8;
+            margin-bottom: 2rem;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            background: rgba(255, 255, 255, 0.25);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50px;
+            color: white;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            background: rgba(255, 255, 255, 0.35);
+            transform: translateY(-2px);
+        }
+
+        /* Gradientes */
+        .gradient-pink { background: linear-gradient(135deg, #FF6B9D, #C44569); }
+        .gradient-blue { background: linear-gradient(135deg, #00BFFF, #1E90FF); }
+        .gradient-purple { background: linear-gradient(135deg, #8B5CF6, #A855F7); }
+        .gradient-green { background: linear-gradient(135deg, #10B981, #059669); }
+        .gradient-orange { background: linear-gradient(135deg, #F59E0B, #D97706); }
+        .gradient-teal { background: linear-gradient(135deg, #14B8A6, #0D9488); }
+        .gradient-red { background: linear-gradient(135deg, #EF4444, #DC2626); }
+        .gradient-indigo { background: linear-gradient(135deg, #6366F1, #4F46E5); }
+        .gradient-yellow { background: linear-gradient(135deg, #FBBF24, #F59E0B); }
+        .gradient-cyan { background: linear-gradient(135deg, #06B6D4, #0891B2); }
+        .gradient-lime { background: linear-gradient(135deg, #84CC16, #65A30D); }
+        .gradient-fuchsia { background: linear-gradient(135deg, #D946EF, #C026D3); }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem 0.5rem;
+            }
+
+            .card-container {
+                border-radius: 20px;
+            }
+
+            .card-content {
+                padding: 2rem 1.5rem 1.5rem;
+                min-height: auto;
+            }
+
+            .profile-image {
+                width: 100px;
+                height: 100px;
+            }
+
+            .name {
+                font-size: 1.75rem;
+            }
+
+            .job-title {
+                font-size: 1.125rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="card-container">
+        <div class="card-content" id="cardContent">
+            <!-- Card content will be loaded here -->
+            <div style="text-align: center; padding: 3rem 2rem;">
+                <div style="font-size: 3rem; margin-bottom: 1rem;">
+                    <i class="fas fa-spinner fa-spin"></i>
+                </div>
+                <p>Carregando cartão...</p>
+            </div>
+        </div>
+        <div class="footer">
+            <a href="index.html">
+                <i class="fas fa-id-card"></i> Crie seu cartão virtual grátis
+            </a>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="scripts/app.js?v=6.0"></script>
+    <script src="scripts/cards-manager.js?v=1.0"></script>
+    <script>
+        // Carregar cartão
+        document.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const cardId = urlParams.get('id');
+            
+            if (!cardId) {
+                showError('Cartão não encontrado', 'O link está incorreto ou o cartão não existe.');
+                return;
+            }
+            
+            const card = CardsManager.getCardById(cardId);
+            
+            if (!card) {
+                showError('Cartão não encontrado', 'Este cartão não existe ou foi removido.');
+                return;
+            }
+            
+            // Incrementar visualizações
+            CardsManager.incrementViews(cardId);
+            
+            // Renderizar cartão
+            renderCard(card);
+        });
+        
+        function renderCard(card) {
+            const container = document.getElementById('cardContent');
+            const data = card.data || {};
+            const personalInfo = data.personalInfo || {};
+            const design = data.design || {};
+            const links = data.links || [];
+            const features = data.featureSections || [];
+            
+            // Aplicar tema
+            const theme = design.theme || 'gradient-purple';
+            if (design.customGradient) {
+                container.style.background = design.customGradient;
+            } else {
+                container.className = `card-content ${theme}`;
+            }
+            
+            // Gerar conteúdo
+            let html = '';
+            
+            // Imagem de perfil
+            if (data.image) {
+                html += `<img src="${data.image}" alt="${personalInfo.fullName}" class="profile-image">`;
+            } else {
+                html += `<div class="profile-image placeholder"><i class="fas fa-user"></i></div>`;
+            }
+            
+            // Nome
+            if (personalInfo.fullName) {
+                html += `<div class="name">${personalInfo.fullName}</div>`;
+            }
+            
+            // Cargo
+            if (personalInfo.jobTitle) {
+                html += `<div class="job-title">${personalInfo.jobTitle}</div>`;
+            }
+            
+            // Descrição
+            if (personalInfo.description) {
+                html += `<div class="description">${personalInfo.description}</div>`;
+            }
+            
+            // Botão salvar contato
+            if (personalInfo.fullName && personalInfo.email) {
+                html += `
+                    <button class="save-contact-btn" onclick="saveContact()">
+                        <i class="fas fa-address-book"></i>
+                        Salvar na agenda
+                    </button>
+                `;
+            }
+            
+            // Contatos
+            if (personalInfo.email || personalInfo.phone) {
+                html += '<div class="contact-info">';
+                
+                if (personalInfo.email) {
+                    html += `
+                        <a href="mailto:${personalInfo.email}" class="contact-item">
+                            <i class="fas fa-envelope"></i>
+                            <span>${personalInfo.email}</span>
+                        </a>
+                    `;
+                }
+                
+                if (personalInfo.phone) {
+                    html += `
+                        <a href="tel:${personalInfo.phone}" class="contact-item">
+                            <i class="fas fa-phone"></i>
+                            <span>${personalInfo.phone}</span>
+                        </a>
+                    `;
+                }
+                
+                html += '</div>';
+            }
+            
+            // Seções de destaque
+            if (features && features.length > 0) {
+                features.forEach((feature, index) => {
+                    html += `
+                        <div class="feature-section">
+                            <h3 class="feature-title">${feature.title}</h3>
+                            <p class="feature-description">${feature.description}</p>
+                            ${feature.image ? `<img src="${feature.image}" alt="${feature.title}" class="feature-image">` : ''}
+                            ${feature.buttonText ? `
+                                <button class="feature-action-btn" onclick="window.open('${feature.buttonUrl}', '_blank')">
+                                    ${feature.buttonText}
+                                </button>
+                            ` : ''}
+                        </div>
+                    `;
+                });
+            }
+            
+            // Links
+            if (links && links.length > 0) {
+                html += '<div class="link-buttons">';
+                links.forEach(link => {
+                    const icon = getSocialIcon(link.type);
+                    html += `
+                        <a href="${link.url}" target="_blank" class="link-button" style="background-color: ${link.color}; color: ${design.buttonTextColor || '#ffffff'};">
+                            <div class="link-icon">
+                                <i class="${icon}"></i>
+                            </div>
+                            <div class="link-text">${link.title}</div>
+                        </a>
+                    `;
+                });
+                html += '</div>';
+            }
+            
+            container.innerHTML = html;
+            
+            // Atualizar título da página
+            document.title = `${personalInfo.fullName || 'Cartão'} | Cartão Virtual`;
+        }
+        
+        function showError(title, message) {
+            const container = document.getElementById('cardContent');
+            container.innerHTML = `
+                <div class="error-state">
+                    <div class="error-icon">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <h2 class="error-title">${title}</h2>
+                    <p class="error-text">${message}</p>
+                    <a href="index.html" class="btn">
+                        <i class="fas fa-home"></i>
+                        Voltar para Início
+                    </a>
+                </div>
+            `;
+        }
+        
+        function saveContact() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const cardId = urlParams.get('id');
+            const card = CardsManager.getCardById(cardId);
+            
+            if (card && card.data && window.Utils && typeof window.Utils.downloadVCard === 'function') {
+                CardsManager.incrementContacts(cardId);
+                window.Utils.downloadVCard(card.data.personalInfo, card.data.image);
+            } else {
+                alert('Erro ao salvar contato. Tente novamente.');
+            }
+        }
+        
+        function getSocialIcon(type) {
+            const icons = {
+                instagram: 'fab fa-instagram',
+                tiktok: 'fab fa-tiktok',
+                whatsapp: 'fab fa-whatsapp',
+                facebook: 'fab fa-facebook',
+                twitter: 'fab fa-twitter',
+                linkedin: 'fab fa-linkedin',
+                youtube: 'fab fa-youtube',
+                website: 'fas fa-globe',
+                email: 'fas fa-envelope',
+                phone: 'fas fa-phone',
+                other: 'fas fa-link'
+            };
+            return icons[type] || icons.other;
+        }
+    </script>
+</body>
+</html>
+

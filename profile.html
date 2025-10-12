@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meu Perfil | Cartão Virtual</title>
+    
+    <!-- Fonts -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="styles/profile.css">
+    
+    <!-- QR Code Library -->
+    <script src="https://cdn.rawgit.com/davidshimjs/qrcodejs/gh-pages/qrcode.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <!-- ========== SIDEBAR ========== -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <a href="index.html" class="logo">
+                    <i class="fas fa-id-card"></i>
+                    <span>Cartão Virtual</span>
+                </a>
+            </div>
+
+            <div class="user-profile">
+                <div class="user-avatar">
+                    US
+                </div>
+                <div class="user-info">
+                    <div class="user-name">Usuário</div>
+                    <div class="user-email">usuario@email.com</div>
+                </div>
+            </div>
+
+            <nav class="nav-menu">
+                <a href="profile.html" class="nav-item active">
+                    <i class="fas fa-th-large"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="profile.html" class="nav-item">
+                    <i class="fas fa-id-card-alt"></i>
+                    <span>Meus Cartões</span>
+                </a>
+                <a href="#" class="nav-item">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Estatísticas</span>
+                </a>
+                <a href="#" class="nav-item">
+                    <i class="fas fa-star"></i>
+                    <span>Favoritos</span>
+                </a>
+                <a href="#" class="nav-item">
+                    <i class="fas fa-cog"></i>
+                    <span>Configurações</span>
+                </a>
+                <a href="index.html" class="nav-item">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Sair</span>
+                </a>
+            </nav>
+        </aside>
+
+        <!-- ========== MAIN CONTENT ========== -->
+        <main class="main-content">
+            <!-- Header -->
+            <div class="header">
+                <div>
+                    <h1>Bem-vindo! 👋</h1>
+                    <p class="header-subtitle">Gerencie seus cartões de visita digitais</p>
+                </div>
+                <a href="editor.html" class="btn btn-primary">
+                    <i class="fas fa-plus"></i>
+                    Criar Novo Cartão
+                </a>
+            </div>
+
+            <!-- Stats Grid -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div>
+                            <div class="stat-number" id="total-cards">0</div>
+                            <div class="stat-label">Total de Cartões</div>
+                        </div>
+                        <div class="stat-icon blue">
+                            <i class="fas fa-id-card"></i>
+                        </div>
+                    </div>
+                    <span class="stat-change positive" id="total-cards-change">
+                        <i class="fas fa-arrow-up"></i> 0 ativos
+                    </span>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div>
+                            <div class="stat-number" id="total-views">0</div>
+                            <div class="stat-label">Visualizações</div>
+                        </div>
+                        <div class="stat-icon green">
+                            <i class="fas fa-eye"></i>
+                        </div>
+                    </div>
+                    <span class="stat-change positive" id="total-views-change">
+                        <i class="fas fa-arrow-up"></i> +15% esta semana
+                    </span>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div>
+                            <div class="stat-number" id="total-shares">0</div>
+                            <div class="stat-label">Compartilhamentos</div>
+                        </div>
+                        <div class="stat-icon purple">
+                            <i class="fas fa-share-alt"></i>
+                        </div>
+                    </div>
+                    <span class="stat-change positive" id="total-shares-change">
+                        <i class="fas fa-arrow-up"></i> +8% hoje
+                    </span>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div>
+                            <div class="stat-number" id="total-contacts">0</div>
+                            <div class="stat-label">Contatos Salvos</div>
+                        </div>
+                        <div class="stat-icon orange">
+                            <i class="fas fa-address-book"></i>
+                        </div>
+                    </div>
+                    <span class="stat-change positive" id="total-contacts-change">
+                        <i class="fas fa-arrow-up"></i> +12 hoje
+                    </span>
+                </div>
+            </div>
+
+            <!-- Cards Section -->
+            <div class="section-header">
+                <h2 class="section-title">Meus Cartões</h2>
+                <div class="search-filter">
+                    <div class="search-box">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="searchInput" placeholder="Pesquisar cartões...">
+                    </div>
+                    <button class="filter-btn" id="filterBtn" data-current-filter="all">
+                        <i class="fas fa-filter"></i>
+                        Filtrar
+                    </button>
+                </div>
+            </div>
+
+            <!-- Cards Grid -->
+            <div class="cards-grid" id="cardsContainer">
+                <!-- Cards will be loaded here by JavaScript -->
+                <div class="empty-state">
+                    <div class="empty-icon">
+                        <i class="fas fa-spinner fa-spin"></i>
+                    </div>
+                    <p>Carregando cartões...</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Mobile Menu Button -->
+    <button class="mobile-menu-btn">
+        <i class="fas fa-bars"></i>
+    </button>
+
+    <!-- Mobile Overlay -->
+    <div class="mobile-overlay"></div>
+
+    <!-- Scripts -->
+    <script src="scripts/app.js?v=6.0"></script>
+    <script src="scripts/cards-manager.js?v=1.0"></script>
+    <script src="scripts/share-modal.js?v=1.0"></script>
+    <script src="scripts/profile.js?v=1.0"></script>
+</body>
+</html>
+

@@ -542,8 +542,51 @@ const generateCard = async () => {
 // Função showGeneratedInfo está implementada em qr-generator.js
 
 const saveCard = () => {
-    saveData();
-    (window.Utils?.showNotification || showNotification)('Cartão salvo com sucesso!');
+    // Verificar se está editando um cartão existente
+    const editingCardId = localStorage.getItem('editing-card-id');
+    
+    if (editingCardId) {
+        // Atualizar cartão existente
+        if (window.CardsManager) {
+            const cardName = prompt('Nome do cartão:', window.appState.personalInfo.fullName || 'Meu Cartão');
+            if (cardName) {
+                window.CardsManager.updateCard(editingCardId, {
+                    name: cardName,
+                    data: window.appState
+                });
+                localStorage.removeItem('editing-card-id');
+                (window.Utils?.showNotification || showNotification)('Cartão atualizado com sucesso!');
+                
+                // Redirecionar para o perfil após 1 segundo
+                setTimeout(() => {
+                    window.location.href = 'profile.html';
+                }, 1000);
+                return;
+            }
+        }
+    }
+    
+    // Salvar novo cartão
+    if (window.CardsManager) {
+        const cardName = prompt('Dê um nome para este cartão:', window.appState.personalInfo.fullName || 'Meu Cartão');
+        if (cardName) {
+            window.CardsManager.createCard({
+                name: cardName,
+                data: window.appState
+            });
+            (window.Utils?.showNotification || showNotification)('Cartão salvo na coleção!');
+            
+            // Perguntar se deseja ir para o perfil
+            const goToProfile = confirm('Cartão salvo! Deseja ir para seu perfil?');
+            if (goToProfile) {
+                window.location.href = 'profile.html';
+            }
+        }
+    } else {
+        // Fallback: salvar apenas no localStorage
+        saveData();
+        (window.Utils?.showNotification || showNotification)('Cartão salvo com sucesso!');
+    }
 };
 
 // ==========================================================================
