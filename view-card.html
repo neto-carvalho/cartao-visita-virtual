@@ -349,25 +349,32 @@
 
     <!-- Scripts -->
     <script src="scripts/app.js?v=6.0"></script>
-    <script src="scripts/cards-manager.js?v=1.3"></script>
+    <script src="scripts/cards-manager.js?v=1.4"></script>
     <script>
         // Carregar cartão
         document.addEventListener('DOMContentLoaded', () => {
             console.log('🚀 Iniciando carregamento do cartão...');
             
-            const urlParams = new URLSearchParams(window.location.search);
-            const cardId = urlParams.get('id');
-            
-            console.log('🔍 Card ID da URL:', cardId);
-            
-            if (!cardId) {
-                console.error('❌ Card ID não encontrado na URL');
-                showError('Cartão não encontrado', 'O link está incorreto ou o cartão não existe.');
-                return;
-            }
-            
-            // Tentar carregar o cartão
-            loadCardData(cardId);
+            // Verificar se há erros de carregamento de scripts
+            setTimeout(() => {
+                if (typeof window.CardsManager === 'undefined') {
+                    console.warn('⚠️ CardsManager não carregado, usando fallback...');
+                }
+                
+                const urlParams = new URLSearchParams(window.location.search);
+                const cardId = urlParams.get('id');
+                
+                console.log('🔍 Card ID da URL:', cardId);
+                
+                if (!cardId) {
+                    console.error('❌ Card ID não encontrado na URL');
+                    showError('Cartão não encontrado', 'O link está incorreto ou o cartão não existe.');
+                    return;
+                }
+                
+                // Tentar carregar o cartão
+                loadCardData(cardId);
+            }, 100); // Delay para garantir que scripts carreguem
         });
         
         // Função para carregar dados do cartão
@@ -428,9 +435,22 @@
                 console.error('❌ Erro ao ler localStorage:', error);
             }
             
-            // Se ainda não encontrou, mostrar erro
+            // Se ainda não encontrou, mostrar erro com informações de debug
             console.error('❌ Cartão não encontrado em nenhum local');
-            showError('Cartão não encontrado', 'Este cartão não existe ou foi removido. Certifique-se de que está acessando o link correto.');
+            
+            const debugInfo = {
+                hasCardsManager: typeof window.CardsManager !== 'undefined',
+                hasLocalStorage: typeof localStorage !== 'undefined',
+                currentUrl: window.location.href,
+                cardId: cardId
+            };
+            
+            console.error('🔍 Debug info:', debugInfo);
+            
+            showError(
+                'Cartão não encontrado', 
+                'Este cartão não existe ou foi removido. Certifique-se de que está acessando o link correto. Se o problema persistir, tente recarregar a página.'
+            );
         }
         
         function renderCard(card) {
@@ -572,7 +592,26 @@
         }
         
         function showError(title, message) {
+            console.error('🚨 Mostrando erro:', title, message);
+            
             const container = document.getElementById('cardContent');
+            if (!container) {
+                // Se não conseguir encontrar o container, criar um básico
+                document.body.innerHTML = `
+                    <div style="display: flex; align-items: center; justify-content: center; min-height: 100vh; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 2rem;">
+                        <div style="background: white; border-radius: 25px; padding: 3rem; text-align: center; max-width: 500px; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);">
+                            <div style="font-size: 4rem; margin-bottom: 1rem; color: #ef4444;">⚠️</div>
+                            <h2 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 0.5rem; color: #1f2937;">${title}</h2>
+                            <p style="color: #6b7280; margin-bottom: 2rem; line-height: 1.5;">${message}</p>
+                            <a href="index.html" style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1.5rem; background: #3b82f6; color: white; text-decoration: none; border-radius: 50px; font-weight: 600; transition: all 0.3s ease;">
+                                🏠 Voltar para Início
+                            </a>
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+            
             container.innerHTML = `
                 <div class="error-state">
                     <div class="error-icon">

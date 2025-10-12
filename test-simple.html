@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste Simples</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 2rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-align: center;
+        }
+        .container {
+            background: white;
+            color: #333;
+            padding: 2rem;
+            border-radius: 15px;
+            max-width: 500px;
+            margin: 0 auto;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        .btn {
+            display: inline-block;
+            padding: 1rem 2rem;
+            background: #3b82f6;
+            color: white;
+            text-decoration: none;
+            border-radius: 50px;
+            margin: 0.5rem;
+            transition: all 0.3s ease;
+        }
+        .btn:hover {
+            background: #2563eb;
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Teste Simples</h1>
+        <p>Se você está vendo esta página, o servidor está funcionando!</p>
+        
+        <h2>Links para testar:</h2>
+        <a href="index.html" class="btn">🏠 Página Inicial</a>
+        <a href="editor.html" class="btn">✏️ Editor</a>
+        <a href="profile.html" class="btn">👤 Perfil</a>
+        
+        <h2>Teste de URL com parâmetros:</h2>
+        <p>URL atual: <code id="currentUrl"></code></p>
+        <p>Parâmetros: <code id="params"></code></p>
+        
+        <script>
+            document.getElementById('currentUrl').textContent = window.location.href;
+            const urlParams = new URLSearchParams(window.location.search);
+            document.getElementById('params').textContent = urlParams.toString() || 'Nenhum';
+            
+            console.log('✅ Página de teste carregada com sucesso!');
+            console.log('🌐 URL atual:', window.location.href);
+            console.log('📋 Parâmetros:', Object.fromEntries(urlParams));
+        </script>
+    </div>
+</body>
+</html>

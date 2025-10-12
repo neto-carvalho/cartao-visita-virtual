@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste QR Code</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 2rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .container {
+            background: white;
+            color: #333;
+            padding: 2rem;
+            border-radius: 15px;
+            max-width: 600px;
+            margin: 0 auto;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        #qrcode {
+            text-align: center;
+            margin: 2rem 0;
+            padding: 1rem;
+            background: #f3f4f6;
+            border-radius: 10px;
+        }
+        .btn {
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            background: #3b82f6;
+            color: white;
+            text-decoration: none;
+            border-radius: 50px;
+            margin: 0.5rem;
+            cursor: pointer;
+            border: none;
+            font-size: 1rem;
+        }
+        .btn:hover {
+            background: #2563eb;
+        }
+        .status {
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 8px;
+            font-family: monospace;
+        }
+        .success { background: #d1fae5; color: #065f46; }
+        .error { background: #fee2e2; color: #991b1b; }
+        .info { background: #dbeafe; color: #1e40af; }
+    </style>
+    
+    <!-- QR Code Library -->
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Teste de QR Code</h1>
+        
+        <div id="status"></div>
+        
+        <div>
+            <label for="urlInput">URL para gerar QR Code:</label><br>
+            <input type="text" id="urlInput" value="http://localhost:8000/test-simple.html" style="width: 100%; padding: 0.5rem; margin: 0.5rem 0; border-radius: 5px; border: 1px solid #ccc;">
+            <button class="btn" onclick="generateQR()">🔄 Gerar QR Code</button>
+        </div>
+        
+        <div id="qrcode"></div>
+        
+        <div id="logs" style="max-height: 300px; overflow-y: auto; background: #1f2937; color: #10b981; padding: 1rem; border-radius: 8px; font-family: monospace; font-size: 0.875rem;"></div>
+    </div>
+
+    <script>
+        const statusDiv = document.getElementById('status');
+        const qrcodeDiv = document.getElementById('qrcode');
+        const logsDiv = document.getElementById('logs');
+        
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const color = type === 'error' ? '#ef4444' : type === 'success' ? '#10b981' : '#60a5fa';
+            logsDiv.innerHTML += `<div style="color: ${color}">[${timestamp}] ${message}</div>`;
+            logsDiv.scrollTop = logsDiv.scrollHeight;
+            console.log(message);
+        }
+        
+        function showStatus(message, type) {
+            statusDiv.innerHTML = `<div class="status ${type}">${message}</div>`;
+        }
+        
+        // Verificar se a biblioteca QRCode foi carregada
+        window.addEventListener('load', () => {
+            log('🚀 Página carregada', 'success');
+            
+            if (typeof QRCode !== 'undefined') {
+                log('✅ Biblioteca QRCode carregada com sucesso!', 'success');
+                showStatus('✅ Biblioteca QRCode está disponível!', 'success');
+                
+                // Verificar métodos disponíveis
+                log(`📋 Métodos QRCode disponíveis: ${Object.keys(QRCode).join(', ')}`, 'info');
+            } else {
+                log('❌ Biblioteca QRCode NÃO foi carregada', 'error');
+                showStatus('❌ Erro: Biblioteca QRCode não está disponível', 'error');
+            }
+            
+            // Gerar QR code automaticamente
+            setTimeout(generateQR, 500);
+        });
+        
+        function generateQR() {
+            const url = document.getElementById('urlInput').value;
+            
+            log(`🔄 Gerando QR Code para: ${url}`, 'info');
+            qrcodeDiv.innerHTML = '<p>⏳ Gerando...</p>';
+            
+            if (typeof QRCode === 'undefined') {
+                log('❌ Biblioteca QRCode não disponível', 'error');
+                qrcodeDiv.innerHTML = '<p style="color: red;">❌ Biblioteca QRCode não carregada</p>';
+                showStatus('❌ Biblioteca QRCode não está disponível', 'error');
+                return;
+            }
+            
+            try {
+                qrcodeDiv.innerHTML = '';
+                
+                const canvas = document.createElement('canvas');
+                canvas.style.borderRadius = '10px';
+                
+                QRCode.toCanvas(canvas, url, {
+                    width: 300,
+                    color: {
+                        dark: '#111827',
+                        light: '#ffffff'
+                    },
+                    errorCorrectionLevel: 'H'
+                }, (error) => {
+                    if (error) {
+                        log(`❌ Erro ao gerar QR Code: ${error.message}`, 'error');
+                        qrcodeDiv.innerHTML = `<p style="color: red;">❌ Erro: ${error.message}</p>`;
+                        showStatus(`❌ Erro: ${error.message}`, 'error');
+                    } else {
+                        log('✅ QR Code gerado com sucesso!', 'success');
+                        qrcodeDiv.appendChild(canvas);
+                        showStatus('✅ QR Code gerado com sucesso!', 'success');
+                        
+                        // Adicionar clique para testar
+                        canvas.style.cursor = 'pointer';
+                        canvas.title = 'Clique para abrir a URL';
+                        canvas.addEventListener('click', () => {
+                            log(`🔗 Abrindo URL: ${url}`, 'info');
+                            window.open(url, '_blank');
+                        });
+                    }
+                });
+            } catch (error) {
+                log(`❌ Exceção ao gerar QR Code: ${error.message}`, 'error');
+                qrcodeDiv.innerHTML = `<p style="color: red;">❌ Exceção: ${error.message}</p>`;
+                showStatus(`❌ Exceção: ${error.message}`, 'error');
+            }
+        }
+    </script>
+</body>
+</html>
