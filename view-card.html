@@ -349,7 +349,7 @@
 
     <!-- Scripts -->
     <script src="scripts/app.js?v=6.0"></script>
-    <script src="scripts/cards-manager.js?v=1.1"></script>
+    <script src="scripts/cards-manager.js?v=1.2"></script>
     <script>
         // Carregar cartão
         document.addEventListener('DOMContentLoaded', () => {
@@ -571,22 +571,7 @@
             }
         }
         
-        function getSocialIcon(type) {
-            const icons = {
-                instagram: 'fab fa-instagram',
-                tiktok: 'fab fa-tiktok',
-                whatsapp: 'fab fa-whatsapp',
-                facebook: 'fab fa-facebook',
-                twitter: 'fab fa-twitter',
-                linkedin: 'fab fa-linkedin',
-                youtube: 'fab fa-youtube',
-                website: 'fas fa-globe',
-                email: 'fas fa-envelope',
-                phone: 'fas fa-phone',
-                other: 'fas fa-link'
-            };
-            return icons[type] || icons.other;
-        }
+        // getSocialIcon já está disponível globalmente via app.js
     </script>
 </body>
 </html>
