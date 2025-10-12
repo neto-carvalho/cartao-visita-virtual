@@ -555,12 +555,18 @@ const saveCard = () => {
                     data: window.appState
                 });
                 localStorage.removeItem('editing-card-id');
-                (window.Utils?.showNotification || showNotification)('Cartão atualizado com sucesso!');
                 
-                // Redirecionar para o perfil após 1 segundo
+                // Mostrar notificação de sucesso
+                if (window.Utils && typeof window.Utils.showNotification === 'function') {
+                    window.Utils.showNotification('✅ Cartão atualizado e salvo no seu perfil!', 'success');
+                } else {
+                    alert('✅ Cartão atualizado e salvo no seu perfil!');
+                }
+                
+                // Redirecionar para o perfil após 1.5 segundos
                 setTimeout(() => {
                     window.location.href = 'profile.html';
-                }, 1000);
+                }, 1500);
                 return;
             }
         }
@@ -574,18 +580,31 @@ const saveCard = () => {
                 name: cardName,
                 data: window.appState
             });
-            (window.Utils?.showNotification || showNotification)('Cartão salvo na coleção!');
+            
+            // Mostrar notificação de sucesso
+            if (window.Utils && typeof window.Utils.showNotification === 'function') {
+                window.Utils.showNotification('✅ Cartão salvo no seu perfil com sucesso!', 'success');
+            } else {
+                alert('✅ Cartão salvo no seu perfil com sucesso!');
+            }
             
             // Perguntar se deseja ir para o perfil
-            const goToProfile = confirm('Cartão salvo! Deseja ir para seu perfil?');
-            if (goToProfile) {
-                window.location.href = 'profile.html';
-            }
+            setTimeout(() => {
+                const goToProfile = confirm('Cartão salvo no seu perfil! Deseja visualizar agora?');
+                if (goToProfile) {
+                    window.location.href = 'profile.html';
+                }
+            }, 500);
         }
     } else {
         // Fallback: salvar apenas no localStorage
         saveData();
-        (window.Utils?.showNotification || showNotification)('Cartão salvo com sucesso!');
+        
+        if (window.Utils && typeof window.Utils.showNotification === 'function') {
+            window.Utils.showNotification('✅ Cartão salvo com sucesso!', 'success');
+        } else {
+            alert('✅ Cartão salvo com sucesso!');
+        }
     }
 };
 
