@@ -18,7 +18,14 @@ window.openShareModal = (cardId) => {
         ? 'https://neto-carvalho.github.io/cartao-visita-virtual'
         : window.location.origin;
     
-    const shareUrl = `${baseUrl}/view-card.html?id=${cardId}`;
+    // Incluir dados essenciais do cartão na URL para funcionar sem localStorage
+    const cardData = encodeURIComponent(JSON.stringify({
+        id: card.id,
+        name: card.name,
+        data: card.data
+    }));
+    
+    const shareUrl = `${baseUrl}/view-card.html?id=${cardId}&data=${cardData}`;
     console.log('🌐 URL de compartilhamento gerada:', shareUrl);
     
     // Criar modal

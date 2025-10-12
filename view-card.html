@@ -349,7 +349,7 @@
 
     <!-- Scripts -->
     <script src="scripts/app.js?v=6.0"></script>
-    <script src="scripts/cards-manager.js?v=1.2"></script>
+    <script src="scripts/cards-manager.js?v=1.3"></script>
     <script>
         // Carregar cartão
         document.addEventListener('DOMContentLoaded', () => {
@@ -366,31 +366,72 @@
                 return;
             }
             
-            // Verificar se CardsManager está disponível
-            if (!window.CardsManager) {
-                console.error('❌ CardsManager não está disponível');
-                showError('Erro de Sistema', 'Sistema de cartões não carregado. Recarregue a página.');
-                return;
-            }
-            
-            console.log('📊 Todos os cartões:', window.CardsManager.getAllCards());
-            
-            const card = window.CardsManager.getCardById(cardId);
-            console.log('🎯 Cartão encontrado:', card);
-            
-            if (!card) {
-                console.error('❌ Cartão não encontrado no sistema');
-                showError('Cartão não encontrado', 'Este cartão não existe ou foi removido.');
-                return;
-            }
-            
-            // Incrementar visualizações
-            window.CardsManager.incrementViews(cardId);
-            
-            // Renderizar cartão
-            console.log('🎨 Renderizando cartão...');
-            renderCard(card);
+            // Tentar carregar o cartão
+            loadCardData(cardId);
         });
+        
+        // Função para carregar dados do cartão
+        function loadCardData(cardId) {
+            console.log('📂 Tentando carregar dados do cartão:', cardId);
+            
+            // PRIMEIRO: Tentar carregar dados da URL (para funcionar no mobile)
+            const urlParams = new URLSearchParams(window.location.search);
+            const cardDataParam = urlParams.get('data');
+            
+            if (cardDataParam) {
+                try {
+                    const card = JSON.parse(decodeURIComponent(cardDataParam));
+                    console.log('🎯 Cartão encontrado via URL:', card);
+                    renderCard(card);
+                    return;
+                } catch (error) {
+                    console.error('❌ Erro ao decodificar dados da URL:', error);
+                }
+            }
+            
+            // SEGUNDO: Verificar se CardsManager está disponível
+            if (window.CardsManager) {
+                console.log('✅ CardsManager disponível, buscando cartão...');
+                console.log('📊 Todos os cartões:', window.CardsManager.getAllCards());
+                
+                const card = window.CardsManager.getCardById(cardId);
+                if (card) {
+                    console.log('🎯 Cartão encontrado via CardsManager:', card);
+                    
+                    // Incrementar visualizações
+                    window.CardsManager.incrementViews(cardId);
+                    
+                    // Renderizar cartão
+                    console.log('🎨 Renderizando cartão...');
+                    renderCard(card);
+                    return;
+                }
+            }
+            
+            // TERCEIRO: Se não encontrou via CardsManager, tentar localStorage diretamente
+            console.log('⚠️ Cartão não encontrado via CardsManager, tentando localStorage...');
+            
+            try {
+                const storedData = localStorage.getItem('virtual-cards-data');
+                if (storedData) {
+                    const data = JSON.parse(storedData);
+                    const cards = data.cards || [];
+                    const card = cards.find(c => c.id === cardId);
+                    
+                    if (card) {
+                        console.log('🎯 Cartão encontrado via localStorage:', card);
+                        renderCard(card);
+                        return;
+                    }
+                }
+            } catch (error) {
+                console.error('❌ Erro ao ler localStorage:', error);
+            }
+            
+            // Se ainda não encontrou, mostrar erro
+            console.error('❌ Cartão não encontrado em nenhum local');
+            showError('Cartão não encontrado', 'Este cartão não existe ou foi removido. Certifique-se de que está acessando o link correto.');
+        }
         
         function renderCard(card) {
             console.log('🎨 Iniciando renderização do cartão:', card);
