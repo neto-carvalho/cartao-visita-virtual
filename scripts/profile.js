@@ -303,16 +303,19 @@ const showContextMenu = (event, options) => {
     
     const menu = document.createElement('div');
     menu.className = 'context-menu';
+    
+    // Criar menu temporariamente para calcular dimensões
     menu.style.cssText = `
         position: fixed;
-        top: ${event.clientY}px;
-        left: ${event.clientX}px;
+        top: -9999px;
+        left: -9999px;
         background: white;
         border-radius: 0.5rem;
         box-shadow: 0 4px 12px rgba(0,0,0,0.15);
         padding: 0.5rem;
         z-index: 9999;
         min-width: 200px;
+        opacity: 0;
     `;
     
     options.forEach(option => {
@@ -348,6 +351,45 @@ const showContextMenu = (event, options) => {
     });
     
     document.body.appendChild(menu);
+    
+    // Calcular posição otimizada
+    const menuRect = menu.getBoundingClientRect();
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+    
+    let finalTop = event.clientY;
+    let finalLeft = event.clientX;
+    
+    // Ajustar posição horizontal se sair da tela
+    if (finalLeft + menuRect.width > viewportWidth) {
+        finalLeft = viewportWidth - menuRect.width - 10; // 10px de margem
+    }
+    if (finalLeft < 10) {
+        finalLeft = 10;
+    }
+    
+    // Ajustar posição vertical se sair da tela
+    if (finalTop + menuRect.height > viewportHeight) {
+        finalTop = event.clientY - menuRect.height; // Mostrar acima do clique
+    }
+    if (finalTop < 10) {
+        finalTop = 10;
+    }
+    
+    // Aplicar posição final
+    menu.style.cssText = `
+        position: fixed;
+        top: ${finalTop}px;
+        left: ${finalLeft}px;
+        background: white;
+        border-radius: 0.5rem;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        padding: 0.5rem;
+        z-index: 9999;
+        min-width: 200px;
+        opacity: 1;
+        animation: contextMenuFadeIn 0.2s ease-out;
+    `;
     
     // Fechar ao clicar fora
     setTimeout(() => {
