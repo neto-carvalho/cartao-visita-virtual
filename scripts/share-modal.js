@@ -18,12 +18,17 @@ window.openShareModal = (cardId) => {
         ? 'https://neto-carvalho.github.io/cartao-visita-virtual'
         : window.location.origin;
     
-    // Incluir dados essenciais do cartão na URL para funcionar sem localStorage
-    const cardData = encodeURIComponent(JSON.stringify({
+    // Incluir dados essenciais do cartão na URL (sem imagem para evitar URL muito longa)
+    const cardDataWithoutImage = {
         id: card.id,
         name: card.name,
-        data: card.data
-    }));
+        data: {
+            ...card.data,
+            image: null // Remover imagem da URL para evitar URL muito longa
+        }
+    };
+    
+    const cardData = encodeURIComponent(JSON.stringify(cardDataWithoutImage));
     
     const shareUrl = `${baseUrl}/view-card.html?id=${cardId}&data=${cardData}`;
     console.log('🌐 URL de compartilhamento gerada:', shareUrl);
@@ -283,26 +288,40 @@ const generateQRCode = (url) => {
     
     try {
         console.log('✅ Biblioteca QRCode encontrada, gerando...');
-        new QRCode(container, {
-            text: url,
+        
+        // Usar a nova biblioteca QRCode
+        QRCode.toCanvas(container, url, {
             width: 200,
             height: 200,
-            colorDark: "#111827",
-            colorLight: "#ffffff",
-            correctLevel: QRCode.CorrectLevel.H
+            color: {
+                dark: '#111827',
+                light: '#ffffff'
+            },
+            errorCorrectionLevel: 'H'
+        }, (error, canvas) => {
+            if (error) {
+                console.error('❌ Erro ao gerar QR Code:', error);
+                container.innerHTML = `
+                    <div style="width: 200px; height: 200px; background: #FEF2F2; border: 2px solid #FECACA; border-radius: 0.5rem; display: flex; align-items: center; justify-content: center; color: #DC2626; text-align: center; padding: 1rem;">
+                        <div>
+                            <i class="fas fa-exclamation-circle" style="font-size: 2rem; margin-bottom: 0.5rem;"></i><br/>
+                            Erro ao gerar<br/>QR Code
+                        </div>
+                    </div>
+                `;
+            } else {
+                console.log('✅ QR Code gerado com sucesso');
+                
+                // Adicionar evento de clique para testar
+                canvas.style.cursor = 'pointer';
+                canvas.title = 'Clique para testar o QR Code';
+                canvas.style.borderRadius = '0.5rem';
+                canvas.addEventListener('click', () => {
+                    console.log('🔍 Testando QR Code - abrindo URL:', url);
+                    window.open(url, '_blank');
+                });
+            }
         });
-        console.log('✅ QR Code gerado com sucesso');
-        
-        // Adicionar evento de clique para testar
-        const canvas = container.querySelector('canvas');
-        if (canvas) {
-            canvas.style.cursor = 'pointer';
-            canvas.title = 'Clique para testar o QR Code';
-            canvas.addEventListener('click', () => {
-                console.log('🔍 Testando QR Code - abrindo URL:', url);
-                window.open(url, '_blank');
-            });
-        }
     } catch (error) {
         console.error('❌ Erro ao gerar QR Code:', error);
         container.innerHTML = `
