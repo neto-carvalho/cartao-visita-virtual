@@ -3,20 +3,18 @@
    ========================================================================== */
 
 // Inicializar gerenciamento de seções de destaque
-document.addEventListener('DOMContentLoaded', () => {
-    initializeFeatures();
-});
-
 const initializeFeatures = () => {
     console.log('⭐ Inicializando sistema de seções de destaque...');
     
     const addFeatureBtn = document.getElementById('addFeatureBtn');
     if (addFeatureBtn) {
-        addFeatureBtn.addEventListener('click', addFeatureSection);
+        addFeatureBtn.addEventListener('click', () => addFeatureSection());
+    } else {
+        console.error('❌ Botão addFeatureBtn não encontrado!');
     }
     
     // Carregar seções salvas
-    if (window.appState && window.appState.featureSections) {
+    if (window.appState && window.appState.featureSections && window.appState.featureSections.length > 0) {
         window.appState.featureSections.forEach((feature, index) => {
             addFeatureSection(feature, index);
         });
@@ -25,12 +23,31 @@ const initializeFeatures = () => {
     console.log('✅ Sistema de seções de destaque inicializado');
 };
 
+// Inicializar quando o DOM estiver pronto
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeFeatures);
+} else {
+    // DOM já está pronto
+    initializeFeatures();
+}
+
 // Adicionar nova seção de destaque
 const addFeatureSection = (existingData = null, index = null) => {
+    console.log('📝 Adicionando seção de destaque...', existingData, index);
+    
     const container = document.getElementById('featuresContainer');
-    if (!container) return;
+    if (!container) {
+        console.error('❌ Container featuresContainer não encontrado!');
+        return;
+    }
+    
+    // Garantir que featureSections existe
+    if (!window.appState.featureSections) {
+        window.appState.featureSections = [];
+    }
     
     const featureIndex = index !== null ? index : window.appState.featureSections.length;
+    console.log('📊 Índice da seção:', featureIndex);
     
     // Criar elemento da seção
     const featureDiv = document.createElement('div');
@@ -147,11 +164,15 @@ const addFeatureSection = (existingData = null, index = null) => {
     });
     
     // Upload de imagem
-    uploadArea.addEventListener('click', () => {
+    uploadArea.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        console.log('🖼️ Clicou na área de upload, abrindo seletor...');
         imageInput.click();
     });
     
     imageInput.addEventListener('change', (e) => {
+        console.log('📁 Arquivo selecionado:', e.target.files[0]);
         handleFeatureImageUpload(e, featureIndex);
     });
     
@@ -166,6 +187,7 @@ const updateFeatureSection = (index, field, value) => {
     if (!window.appState.featureSections[index]) return;
     
     window.appState.featureSections[index][field] = value;
+    console.log(`📝 Seção ${index} atualizada - ${field}:`, value);
     
     // Atualizar preview
     if (typeof window.updatePreview === 'function') {
@@ -173,22 +195,41 @@ const updateFeatureSection = (index, field, value) => {
     }
     
     // Salvar no localStorage
-    Utils.saveToStorage(window.appState);
+    if (window.Utils && typeof window.Utils.saveToStorage === 'function') {
+        window.Utils.saveToStorage(window.appState);
+    }
 };
 
 // Upload de imagem da seção
 const handleFeatureImageUpload = (event, index) => {
     const file = event.target.files[0];
-    if (!file) return;
-    
-    // Validações
-    if (!CONFIG.ALLOWED_IMAGE_TYPES.includes(file.type)) {
-        Utils.showNotification('Formato de imagem não suportado. Use PNG, JPG ou WEBP.', 'error');
+    if (!file) {
+        console.log('❌ Nenhum arquivo selecionado');
         return;
     }
     
-    if (file.size > CONFIG.MAX_IMAGE_SIZE) {
-        Utils.showNotification('Imagem muito grande. Máximo 5MB.', 'error');
+    console.log('📤 Processando upload de imagem:', file.name, file.type, file.size);
+    
+    // Validações
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+        console.error('❌ Tipo de arquivo não suportado:', file.type);
+        if (window.Utils && typeof window.Utils.showNotification === 'function') {
+            window.Utils.showNotification('Formato de imagem não suportado. Use PNG, JPG ou WEBP.', 'error');
+        } else {
+            alert('Formato de imagem não suportado. Use PNG, JPG ou WEBP.');
+        }
+        return;
+    }
+    
+    const maxSize = 5 * 1024 * 1024; // 5MB
+    if (file.size > maxSize) {
+        console.error('❌ Arquivo muito grande:', file.size);
+        if (window.Utils && typeof window.Utils.showNotification === 'function') {
+            window.Utils.showNotification('Imagem muito grande. Máximo 5MB.', 'error');
+        } else {
+            alert('Imagem muito grande. Máximo 5MB.');
+        }
         return;
     }
     
@@ -196,9 +237,11 @@ const handleFeatureImageUpload = (event, index) => {
     const reader = new FileReader();
     reader.onload = (e) => {
         const imageData = e.target.result;
+        console.log('✅ Imagem convertida para base64');
         
         // Atualizar estado
         window.appState.featureSections[index].image = imageData;
+        console.log('💾 Estado atualizado com imagem');
         
         // Atualizar preview da imagem
         const featureDiv = document.querySelector(`[data-feature-index="${index}"]`);
@@ -211,28 +254,45 @@ const handleFeatureImageUpload = (event, index) => {
                 preview.src = imageData;
                 previewContainer.classList.remove('hidden');
                 placeholder.classList.add('hidden');
+                console.log('🖼️ Preview da imagem atualizado');
             }
         }
         
         // Atualizar preview do cartão
         if (typeof window.updatePreview === 'function') {
             window.updatePreview();
+            console.log('🔄 Preview do cartão atualizado');
         }
         
         // Salvar
-        Utils.saveToStorage(window.appState);
-        Utils.showNotification('Imagem adicionada com sucesso!', 'success');
+        if (window.Utils && typeof window.Utils.saveToStorage === 'function') {
+            window.Utils.saveToStorage(window.appState);
+        }
+        
+        if (window.Utils && typeof window.Utils.showNotification === 'function') {
+            window.Utils.showNotification('Imagem adicionada com sucesso!', 'success');
+        } else {
+            console.log('✅ Imagem adicionada com sucesso!');
+        }
     };
     
     reader.onerror = () => {
-        Utils.showNotification('Erro ao carregar imagem.', 'error');
+        console.error('❌ Erro ao carregar imagem');
+        if (window.Utils && typeof window.Utils.showNotification === 'function') {
+            window.Utils.showNotification('Erro ao carregar imagem.', 'error');
+        } else {
+            alert('Erro ao carregar imagem.');
+        }
     };
     
+    console.log('📖 Iniciando leitura do arquivo...');
     reader.readAsDataURL(file);
 };
 
 // Remover seção de destaque
 const removeFeatureSection = (index) => {
+    console.log('🗑️ Removendo seção:', index);
+    
     // Remover do estado
     window.appState.featureSections.splice(index, 1);
     
@@ -251,8 +311,13 @@ const removeFeatureSection = (index) => {
     }
     
     // Salvar
-    Utils.saveToStorage(window.appState);
-    Utils.showNotification('Seção removida!', 'success');
+    if (window.Utils && typeof window.Utils.saveToStorage === 'function') {
+        window.Utils.saveToStorage(window.appState);
+    }
+    
+    if (window.Utils && typeof window.Utils.showNotification === 'function') {
+        window.Utils.showNotification('Seção removida!', 'success');
+    }
 };
 
 // Exportar funções
