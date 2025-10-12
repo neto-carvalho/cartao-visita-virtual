@@ -349,46 +349,81 @@
 
     <!-- Scripts -->
     <script src="scripts/app.js?v=6.0"></script>
-    <script src="scripts/cards-manager.js?v=1.0"></script>
+    <script src="scripts/cards-manager.js?v=1.1"></script>
     <script>
         // Carregar cartão
         document.addEventListener('DOMContentLoaded', () => {
+            console.log('🚀 Iniciando carregamento do cartão...');
+            
             const urlParams = new URLSearchParams(window.location.search);
             const cardId = urlParams.get('id');
             
+            console.log('🔍 Card ID da URL:', cardId);
+            
             if (!cardId) {
+                console.error('❌ Card ID não encontrado na URL');
                 showError('Cartão não encontrado', 'O link está incorreto ou o cartão não existe.');
                 return;
             }
             
-            const card = CardsManager.getCardById(cardId);
+            // Verificar se CardsManager está disponível
+            if (!window.CardsManager) {
+                console.error('❌ CardsManager não está disponível');
+                showError('Erro de Sistema', 'Sistema de cartões não carregado. Recarregue a página.');
+                return;
+            }
+            
+            console.log('📊 Todos os cartões:', window.CardsManager.getAllCards());
+            
+            const card = window.CardsManager.getCardById(cardId);
+            console.log('🎯 Cartão encontrado:', card);
             
             if (!card) {
+                console.error('❌ Cartão não encontrado no sistema');
                 showError('Cartão não encontrado', 'Este cartão não existe ou foi removido.');
                 return;
             }
             
             // Incrementar visualizações
-            CardsManager.incrementViews(cardId);
+            window.CardsManager.incrementViews(cardId);
             
             // Renderizar cartão
+            console.log('🎨 Renderizando cartão...');
             renderCard(card);
         });
         
         function renderCard(card) {
+            console.log('🎨 Iniciando renderização do cartão:', card);
+            
             const container = document.getElementById('cardContent');
+            if (!container) {
+                console.error('❌ Container cardContent não encontrado');
+                return;
+            }
+            
             const data = card.data || {};
             const personalInfo = data.personalInfo || {};
             const design = data.design || {};
             const links = data.links || [];
             const features = data.featureSections || [];
             
+            console.log('📊 Dados do cartão:', {
+                personalInfo,
+                design,
+                links,
+                features
+            });
+            
             // Aplicar tema
             const theme = design.theme || 'gradient-purple';
+            console.log('🎨 Aplicando tema:', theme);
+            
             if (design.customGradient) {
                 container.style.background = design.customGradient;
+                console.log('🌈 Aplicando gradiente customizado:', design.customGradient);
             } else {
                 container.className = `card-content ${theme}`;
+                console.log('🎨 Aplicando tema padrão:', theme);
             }
             
             // Gerar conteúdo
@@ -486,10 +521,13 @@
                 html += '</div>';
             }
             
+            console.log('📝 HTML gerado:', html);
             container.innerHTML = html;
+            console.log('✅ HTML inserido no container');
             
             // Atualizar título da página
             document.title = `${personalInfo.fullName || 'Cartão'} | Cartão Virtual`;
+            console.log('🏷️ Título da página atualizado:', document.title);
         }
         
         function showError(title, message) {
@@ -510,14 +548,25 @@
         }
         
         function saveContact() {
+            console.log('💾 Salvando contato...');
+            
             const urlParams = new URLSearchParams(window.location.search);
             const cardId = urlParams.get('id');
-            const card = CardsManager.getCardById(cardId);
+            const card = window.CardsManager.getCardById(cardId);
+            
+            console.log('📇 Dados do cartão para vCard:', card);
             
             if (card && card.data && window.Utils && typeof window.Utils.downloadVCard === 'function') {
-                CardsManager.incrementContacts(cardId);
+                window.CardsManager.incrementContacts(cardId);
                 window.Utils.downloadVCard(card.data.personalInfo, card.data.image);
+                console.log('✅ vCard baixado com sucesso');
             } else {
+                console.error('❌ Erro ao salvar contato:', {
+                    hasCard: !!card,
+                    hasData: !!(card && card.data),
+                    hasUtils: !!window.Utils,
+                    hasDownloadFunction: !!(window.Utils && typeof window.Utils.downloadVCard === 'function')
+                });
                 alert('Erro ao salvar contato. Tente novamente.');
             }
         }
