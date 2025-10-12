@@ -104,7 +104,6 @@ const initializeDesign = () => {
     initializeThemes();
     initializeColors();
     initializeCustomGradient();
-    initializeAlignment();
 };
 
 const initializeThemes = () => {
@@ -211,35 +210,6 @@ const initializeColors = () => {
     }
 };
 
-const initializeAlignment = () => {
-    const alignmentButtons = document.querySelectorAll('.alignment-btn');
-    
-    // Marcar alinhamento ativo
-    alignmentButtons.forEach(btn => {
-        if (btn.dataset.alignment === window.appState.design.textAlignment) {
-            btn.classList.add('active');
-        }
-    });
-
-    alignmentButtons.forEach(button => {
-        button.addEventListener('click', () => {
-            const alignment = button.dataset.alignment;
-            
-            // Remover active de todos os botões
-            alignmentButtons.forEach(btn => btn.classList.remove('active'));
-            
-            // Adicionar active ao clicado
-            button.classList.add('active');
-            
-            // Atualizar estado
-            window.appState.design.textAlignment = alignment;
-            saveData();
-            if (typeof window.updatePreview === 'function') {
-                window.updatePreview();
-            }
-            });
-    });
-};
 
 // ==========================================================================
 // UPLOAD DE IMAGEM
