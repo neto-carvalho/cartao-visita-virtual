@@ -541,14 +541,16 @@ const generateCard = async () => {
 
 // Função showGeneratedInfo está implementada em qr-generator.js
 
-const saveCard = () => {
+const saveCard = async () => {
     // Verificar se está editando um cartão existente
     const editingCardId = localStorage.getItem('editing-card-id');
     
     if (editingCardId) {
         // Atualizar cartão existente
         if (window.CardsManager) {
-            const cardName = prompt('Nome do cartão:', window.appState.personalInfo.fullName || 'Meu Cartão');
+            const defaultName = window.appState.personalInfo.fullName || 'Meu Cartão';
+            const cardName = await window.showCardNameModal(defaultName);
+            
             if (cardName) {
                 window.CardsManager.updateCard(editingCardId, {
                     name: cardName,
@@ -557,16 +559,12 @@ const saveCard = () => {
                 localStorage.removeItem('editing-card-id');
                 
                 // Mostrar notificação de sucesso
-                if (window.Utils && typeof window.Utils.showNotification === 'function') {
-                    window.Utils.showNotification('✅ Cartão atualizado e salvo no seu perfil!', 'success');
-                } else {
-                    alert('✅ Cartão atualizado e salvo no seu perfil!');
-                }
+                window.showCustomNotification('Cartão atualizado e salvo no seu perfil!', 'success', 3000);
                 
-                // Redirecionar para o perfil após 1.5 segundos
+                // Redirecionar para o perfil após 2 segundos
                 setTimeout(() => {
                     window.location.href = 'profile.html';
-                }, 1500);
+                }, 2000);
                 return;
             }
         }
@@ -574,7 +572,9 @@ const saveCard = () => {
     
     // Salvar novo cartão
     if (window.CardsManager) {
-        const cardName = prompt('Dê um nome para este cartão:', window.appState.personalInfo.fullName || 'Meu Cartão');
+        const defaultName = window.appState.personalInfo.fullName || 'Meu Cartão';
+        const cardName = await window.showCardNameModal(defaultName);
+        
         if (cardName) {
             window.CardsManager.createCard({
                 name: cardName,
@@ -582,29 +582,27 @@ const saveCard = () => {
             });
             
             // Mostrar notificação de sucesso
-            if (window.Utils && typeof window.Utils.showNotification === 'function') {
-                window.Utils.showNotification('✅ Cartão salvo no seu perfil com sucesso!', 'success');
-            } else {
-                alert('✅ Cartão salvo no seu perfil com sucesso!');
-            }
+            window.showCustomNotification('Cartão salvo no seu perfil com sucesso!', 'success', 3000);
             
             // Perguntar se deseja ir para o perfil
-            setTimeout(() => {
-                const goToProfile = confirm('Cartão salvo no seu perfil! Deseja visualizar agora?');
+            setTimeout(async () => {
+                const goToProfile = await window.showConfirmModal(
+                    '🎉 Cartão Salvo!',
+                    'Seu cartão foi salvo no seu perfil. Deseja visualizar agora?',
+                    'Sim, ver perfil',
+                    'Continuar editando'
+                );
+                
                 if (goToProfile) {
                     window.location.href = 'profile.html';
                 }
-            }, 500);
+            }, 1000);
         }
     } else {
         // Fallback: salvar apenas no localStorage
         saveData();
         
-        if (window.Utils && typeof window.Utils.showNotification === 'function') {
-            window.Utils.showNotification('✅ Cartão salvo com sucesso!', 'success');
-        } else {
-            alert('✅ Cartão salvo com sucesso!');
-        }
+        window.showCustomNotification('Cartão salvo com sucesso!', 'success', 3000);
     }
 };
 
