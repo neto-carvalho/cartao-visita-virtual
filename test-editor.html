@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste do Editor - Cartão Virtual</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <div class="container mx-auto p-4">
+        <h1 class="text-2xl font-bold text-center mb-8">Teste do Editor de Cartão Virtual</h1>
+        
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+            <h2 class="text-lg font-semibold mb-4">Status dos Scripts</h2>
+            <div id="scriptStatus" class="space-y-2">
+                <div id="appStatus" class="flex items-center space-x-2">
+                    <i class="fas fa-circle text-gray-400"></i>
+                    <span>app.js</span>
+                </div>
+                <div id="editorStatus" class="flex items-center space-x-2">
+                    <i class="fas fa-circle text-gray-400"></i>
+                    <span>editor.js</span>
+                </div>
+                <div id="previewStatus" class="flex items-center space-x-2">
+                    <i class="fas fa-circle text-gray-400"></i>
+                    <span>preview.js</span>
+                </div>
+                <div id="linksStatus" class="flex items-center space-x-2">
+                    <i class="fas fa-circle text-gray-400"></i>
+                    <span>links.js</span>
+                </div>
+                <div id="qrStatus" class="flex items-center space-x-2">
+                    <i class="fas fa-circle text-gray-400"></i>
+                    <span>qr-generator.js</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+            <h2 class="text-lg font-semibold mb-4">Teste de Funcionalidades</h2>
+            <div class="space-y-4">
+                <button id="testPreview" class="w-full bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600">
+                    Testar Preview
+                </button>
+                <button id="testSave" class="w-full bg-green-500 text-white py-2 px-4 rounded hover:bg-green-600">
+                    Testar Salvamento
+                </button>
+                <button id="testLoad" class="w-full bg-yellow-500 text-white py-2 px-4 rounded hover:bg-yellow-600">
+                    Testar Carregamento
+                </button>
+            </div>
+        </div>
+        
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <h2 class="text-lg font-semibold mb-4">Log de Testes</h2>
+            <div id="testLog" class="bg-gray-100 p-4 rounded h-64 overflow-y-auto font-mono text-sm">
+                <div class="text-gray-500">Aguardando testes...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="scripts/app.js"></script>
+    <script src="scripts/editor.js"></script>
+    <script src="scripts/preview.js"></script>
+    <script src="scripts/links.js"></script>
+    <script src="scripts/qr-generator.js"></script>
+    
+    <script>
+        // Teste de funcionalidades
+        document.addEventListener('DOMContentLoaded', () => {
+            const log = document.getElementById('testLog');
+            const appStatus = document.getElementById('appStatus');
+            const editorStatus = document.getElementById('editorStatus');
+            const previewStatus = document.getElementById('previewStatus');
+            const linksStatus = document.getElementById('linksStatus');
+            const qrStatus = document.getElementById('qrStatus');
+            
+            const addLog = (message, type = 'info') => {
+                const timestamp = new Date().toLocaleTimeString();
+                const color = type === 'error' ? 'text-red-600' : type === 'success' ? 'text-green-600' : 'text-blue-600';
+                log.innerHTML += `<div class="${color}">[${timestamp}] ${message}</div>`;
+                log.scrollTop = log.scrollHeight;
+            };
+            
+            // Verificar status dos scripts
+            setTimeout(() => {
+                if (typeof window.appState !== 'undefined') {
+                    appStatus.innerHTML = '<i class="fas fa-circle text-green-500"></i><span>app.js - OK</span>';
+                    addLog('app.js carregado com sucesso', 'success');
+                } else {
+                    appStatus.innerHTML = '<i class="fas fa-circle text-red-500"></i><span>app.js - ERRO</span>';
+                    addLog('app.js não carregado', 'error');
+                }
+                
+                if (typeof window.editorState !== 'undefined') {
+                    editorStatus.innerHTML = '<i class="fas fa-circle text-green-500"></i><span>editor.js - OK</span>';
+                    addLog('editor.js carregado com sucesso', 'success');
+                } else {
+                    editorStatus.innerHTML = '<i class="fas fa-circle text-red-500"></i><span>editor.js - ERRO</span>';
+                    addLog('editor.js não carregado', 'error');
+                }
+                
+                if (typeof window.updatePreview !== 'undefined') {
+                    previewStatus.innerHTML = '<i class="fas fa-circle text-green-500"></i><span>preview.js - OK</span>';
+                    addLog('preview.js carregado com sucesso', 'success');
+                } else {
+                    previewStatus.innerHTML = '<i class="fas fa-circle text-red-500"></i><span>preview.js - ERRO</span>';
+                    addLog('preview.js não carregado', 'error');
+                }
+                
+                if (typeof window.addNewLink !== 'undefined') {
+                    linksStatus.innerHTML = '<i class="fas fa-circle text-green-500"></i><span>links.js - OK</span>';
+                    addLog('links.js carregado com sucesso', 'success');
+                } else {
+                    linksStatus.innerHTML = '<i class="fas fa-circle text-red-500"></i><span>links.js - ERRO</span>';
+                    addLog('links.js não carregado', 'error');
+                }
+                
+                if (typeof window.generateQRCode !== 'undefined') {
+                    qrStatus.innerHTML = '<i class="fas fa-circle text-green-500"></i><span>qr-generator.js - OK</span>';
+                    addLog('qr-generator.js carregado com sucesso', 'success');
+                } else {
+                    qrStatus.innerHTML = '<i class="fas fa-circle text-red-500"></i><span>qr-generator.js - ERRO</span>';
+                    addLog('qr-generator.js não carregado', 'error');
+                }
+            }, 1000);
+            
+            // Teste de preview
+            document.getElementById('testPreview').addEventListener('click', () => {
+                addLog('Testando preview...', 'info');
+                if (typeof window.updatePreview === 'function') {
+                    window.updatePreview();
+                    addLog('Preview atualizado com sucesso', 'success');
+                } else {
+                    addLog('Função updatePreview não encontrada', 'error');
+                }
+            });
+            
+            // Teste de salvamento
+            document.getElementById('testSave').addEventListener('click', () => {
+                addLog('Testando salvamento...', 'info');
+                if (typeof window.saveData === 'function') {
+                    window.saveData();
+                    addLog('Dados salvos com sucesso', 'success');
+                } else {
+                    addLog('Função saveData não encontrada', 'error');
+                }
+            });
+            
+            // Teste de carregamento
+            document.getElementById('testLoad').addEventListener('click', () => {
+                addLog('Testando carregamento...', 'info');
+                if (typeof window.loadSavedData === 'function') {
+                    window.loadSavedData();
+                    addLog('Dados carregados com sucesso', 'success');
+                } else {
+                    addLog('Função loadSavedData não encontrada', 'error');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,42 @@
+{
+  "name": "cartao-visita-virtual",
+  "version": "1.0.0",
+  "description": "Sistema moderno para criação de cartões de visita digitais personalizáveis",
+  "main": "index.html",
+  "scripts": {
+    "start": "npx http-server . -p 3000 -o",
+    "dev": "npx live-server --port=3000 --open=/index.html",
+    "build": "echo 'Build process would go here'",
+    "lint": "echo 'Linting process would go here'",
+    "test": "echo 'Tests would go here'"
+  },
+  "keywords": [
+    "cartao-visita",
+    "digital",
+    "qr-code",
+    "nfc",
+    "business-card",
+    "responsive",
+    "modern"
+  ],
+  "author": "Seu Nome",
+  "license": "MIT",
+  "devDependencies": {
+    "http-server": "^14.1.1",
+    "live-server": "^1.2.2"
+  },
+  "dependencies": {
+    "qrcode": "^1.5.3"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/seuusuario/cartao-visita-virtual.git"
+  },
+  "bugs": {
+    "url": "https://github.com/seuusuario/cartao-visita-virtual/issues"
+  },
+  "homepage": "https://github.com/seuusuario/cartao-visita-virtual#readme",
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}
