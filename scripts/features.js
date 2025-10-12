@@ -86,11 +86,12 @@ const addFeatureSection = (existingData = null, index = null) => {
             
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Imagem da Seção</label>
-                <div class="upload-area border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-blue-500 cursor-pointer">
-                    <input type="file" 
-                        class="feature-image-input hidden" 
-                        accept="image/*"
-                        data-index="${featureIndex}">
+                <input type="file" 
+                    class="feature-image-input" 
+                    accept="image/*"
+                    data-index="${featureIndex}"
+                    style="display: none;">
+                <div class="upload-area border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-blue-500 cursor-pointer" data-index="${featureIndex}">
                     <div class="feature-image-preview ${existingData?.image ? '' : 'hidden'}">
                         <img src="${existingData?.image || ''}" alt="Preview" class="max-w-full h-32 object-cover rounded mx-auto mb-2">
                     </div>
@@ -146,6 +147,14 @@ const addFeatureSection = (existingData = null, index = null) => {
     const removeBtn = featureDiv.querySelector('.remove-feature');
     const uploadArea = featureDiv.querySelector('.upload-area');
     
+    console.log('🎯 Elementos encontrados:', {
+        titleInput: !!titleInput,
+        descInput: !!descInput,
+        imageInput: !!imageInput,
+        uploadArea: !!uploadArea,
+        imageInputType: imageInput?.type
+    });
+    
     // Event listeners para inputs
     titleInput.addEventListener('input', (e) => {
         updateFeatureSection(featureIndex, 'title', e.target.value);
@@ -164,17 +173,39 @@ const addFeatureSection = (existingData = null, index = null) => {
     });
     
     // Upload de imagem
-    uploadArea.addEventListener('click', (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        console.log('🖼️ Clicou na área de upload, abrindo seletor...');
-        imageInput.click();
-    });
-    
-    imageInput.addEventListener('change', (e) => {
-        console.log('📁 Arquivo selecionado:', e.target.files[0]);
-        handleFeatureImageUpload(e, featureIndex);
-    });
+    if (uploadArea && imageInput) {
+        uploadArea.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('🖼️ Clicou na área de upload, abrindo seletor...');
+            console.log('📂 Input file:', imageInput);
+            imageInput.click();
+        });
+        
+        imageInput.addEventListener('change', (e) => {
+            console.log('📁 Evento change disparado!');
+            console.log('📁 Arquivo selecionado:', e.target.files[0]);
+            console.log('📁 Total de arquivos:', e.target.files.length);
+            if (e.target.files && e.target.files.length > 0) {
+                handleFeatureImageUpload(e, featureIndex);
+            } else {
+                console.error('❌ Nenhum arquivo no evento change');
+            }
+        });
+        
+        // Adicionar também evento direto no input para garantir
+        imageInput.addEventListener('input', (e) => {
+            console.log('📁 Evento input disparado!');
+            if (e.target.files && e.target.files.length > 0) {
+                console.log('📁 Arquivo via input:', e.target.files[0]);
+                handleFeatureImageUpload(e, featureIndex);
+            }
+        });
+        
+        console.log('✅ Event listeners de upload registrados para índice', featureIndex);
+    } else {
+        console.error('❌ Upload area ou image input não encontrados!');
+    }
     
     // Remover seção
     removeBtn.addEventListener('click', () => {
