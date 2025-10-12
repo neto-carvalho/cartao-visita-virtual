@@ -37,4 +37,4 @@ logs/
 ~*
 
 # Package manager
-package-lock.json
+# package-lock.json (incluído no repositório para manter versões consistentes)
