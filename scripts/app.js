@@ -16,10 +16,13 @@ const appState = {
         primaryColor: '#00BFFF',
         secondaryColor: '#EEE8AA',
         textColor: '#FFFFFF',
-        buttonTextColor: '#FFFFFF'
+        buttonTextColor: '#FFFFFF',
+        customGradient: null
     },
     image: null,
     links: [],
+    featureSections: [], // Novas seções de destaque
+    showSaveContactButton: true, // Mostrar botão "Salvar na Agenda"
     generatedUrl: null
 };
 
@@ -173,6 +176,55 @@ const Utils = {
             console.error('Erro ao copiar:', error);
             return false;
         }
+    },
+
+    // Gerar vCard (arquivo de contato)
+    generateVCard: (personalInfo, image = null) => {
+        const { fullName, jobTitle, email, phone } = personalInfo;
+        
+        let vcard = 'BEGIN:VCARD\n';
+        vcard += 'VERSION:3.0\n';
+        vcard += `FN:${fullName || 'Sem Nome'}\n`;
+        
+        if (jobTitle) {
+            vcard += `TITLE:${jobTitle}\n`;
+        }
+        
+        if (email) {
+            vcard += `EMAIL;TYPE=INTERNET:${email}\n`;
+        }
+        
+        if (phone) {
+            const cleanPhone = phone.replace(/\D/g, '');
+            vcard += `TEL;TYPE=CELL:+55${cleanPhone}\n`;
+        }
+        
+        // Adicionar foto se disponível (base64)
+        if (image && image.startsWith('data:image')) {
+            const base64Data = image.split(',')[1];
+            const imageType = image.split(';')[0].split('/')[1].toUpperCase();
+            vcard += `PHOTO;ENCODING=b;TYPE=${imageType}:${base64Data}\n`;
+        }
+        
+        vcard += 'END:VCARD';
+        
+        return vcard;
+    },
+
+    // Baixar vCard
+    downloadVCard: (personalInfo, image = null) => {
+        const vcard = Utils.generateVCard(personalInfo, image);
+        const blob = new Blob([vcard], { type: 'text/vcard;charset=utf-8' });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `${personalInfo.fullName || 'contato'}.vcf`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+        
+        Utils.showNotification('Contato salvo com sucesso!', 'success');
     }
 };
 

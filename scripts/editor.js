@@ -103,6 +103,7 @@ const initializePersonalInfo = () => {
 const initializeDesign = () => {
     initializeThemes();
     initializeColors();
+    initializeCustomGradient();
     initializeAlignment();
 };
 
@@ -134,6 +135,60 @@ const initializeThemes = () => {
             }
         });
     });
+};
+
+const initializeCustomGradient = () => {
+    const applyBtn = document.getElementById('applyCustomGradient');
+    const clearBtn = document.getElementById('clearCustomGradient');
+    const color1Input = document.getElementById('gradientColor1');
+    const color2Input = document.getElementById('gradientColor2');
+    
+    if (applyBtn && color1Input && color2Input) {
+        applyBtn.addEventListener('click', () => {
+            const color1 = color1Input.value;
+            const color2 = color2Input.value;
+            const customGradient = `linear-gradient(135deg, ${color1}, ${color2})`;
+            
+            // Atualizar estado
+            window.appState.design.customGradient = customGradient;
+            window.appState.design.theme = ''; // Limpar tema pré-definido
+            
+            // Desmarcar todos os botões de tema
+            document.querySelectorAll('.theme-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            saveData();
+            if (typeof window.updatePreview === 'function') {
+                window.updatePreview(true);
+            }
+            
+            Utils.showNotification('Gradiente personalizado aplicado!', 'success');
+        });
+    }
+    
+    if (clearBtn) {
+        clearBtn.addEventListener('click', () => {
+            window.appState.design.customGradient = null;
+            window.appState.design.theme = 'gradient-pink'; // Voltar para padrão
+            
+            // Marcar tema padrão
+            const defaultThemeBtn = document.querySelector('[data-theme="gradient-pink"]');
+            if (defaultThemeBtn) {
+                document.querySelectorAll('.theme-btn').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                defaultThemeBtn.classList.add('active');
+            }
+            
+            saveData();
+            if (typeof window.updatePreview === 'function') {
+                window.updatePreview(true);
+            }
+            
+            Utils.showNotification('Gradiente personalizado removido!', 'success');
+        });
+    }
 };
 
 const initializeColors = () => {

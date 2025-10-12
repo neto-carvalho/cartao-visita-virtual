@@ -21,13 +21,19 @@ const updatePreview = (resetScroll = false) => {
     const previewContainer = document.getElementById('cardPreview');
     if (!previewContainer) return;
 
-    const { personalInfo, design, image, links } = appState;
+    const { personalInfo, design, image, links, featureSections, showSaveContactButton } = appState;
     
     // Salvar posição atual do scroll
     const currentScrollPosition = previewContainer.scrollTop;
     
     // Aplicar tema ao container
-    previewContainer.className = `card-content ${design.theme}`;
+    if (design.customGradient) {
+        previewContainer.className = 'card-content';
+        previewContainer.style.background = design.customGradient;
+    } else {
+        previewContainer.className = `card-content ${design.theme}`;
+        previewContainer.style.background = '';
+    }
     
     // Aplicar cores customizadas
     previewContainer.style.setProperty('--primary-color', design.primaryColor);
@@ -36,8 +42,29 @@ const updatePreview = (resetScroll = false) => {
     previewContainer.style.setProperty('--button-text-color', design.buttonTextColor);
     
     // Gerar conteúdo do cartão
-    const cardContent = generateCardContent(personalInfo, image, links);
+    const cardContent = generateCardContent(personalInfo, image, links, featureSections, showSaveContactButton);
     previewContainer.innerHTML = cardContent;
+    
+    // Adicionar event listener para o botão de salvar contato
+    const saveContactBtn = previewContainer.querySelector('.save-contact-btn');
+    if (saveContactBtn) {
+        saveContactBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            Utils.downloadVCard(appState.personalInfo, appState.image);
+        });
+    }
+    
+    // Adicionar event listeners para botões das seções de destaque
+    const featureButtons = previewContainer.querySelectorAll('.feature-action-btn');
+    featureButtons.forEach((btn, index) => {
+        btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            const section = appState.featureSections[index];
+            if (section && section.buttonUrl) {
+                window.open(section.buttonUrl, '_blank');
+            }
+        });
+    });
     
     // Restaurar posição do scroll ou resetar se solicitado
     setTimeout(() => {
@@ -50,7 +77,7 @@ const updatePreview = (resetScroll = false) => {
 };
 
 // Gerar conteúdo HTML do cartão
-const generateCardContent = (personalInfo, image, links) => {
+const generateCardContent = (personalInfo, image, links, featureSections = [], showSaveContactButton = true) => {
     const { fullName, jobTitle, description, email, phone } = personalInfo;
     
     let content = '';
@@ -85,6 +112,16 @@ const generateCardContent = (personalInfo, image, links) => {
         content += `<div class="description placeholder">Sua descrição</div>`;
     }
     
+    // Botão Salvar na Agenda
+    if (showSaveContactButton && fullName && email) {
+        content += `
+            <button class="save-contact-btn">
+                <i class="fas fa-address-book"></i>
+                Salvar na agenda
+            </button>
+        `;
+    }
+    
     // Informações de contato
     content += '<div class="contact-info">';
     if (email) {
@@ -107,6 +144,26 @@ const generateCardContent = (personalInfo, image, links) => {
         </a>`;
     }
     content += '</div>';
+    
+    // Seções de Destaque
+    if (featureSections && featureSections.length > 0) {
+        featureSections.forEach((section, index) => {
+            content += `
+                <div class="feature-section">
+                    <div class="feature-section-content">
+                        <h3 class="feature-title">${section.title || 'Título da Seção'}</h3>
+                        <p class="feature-description">${section.description || 'Descrição da seção'}</p>
+                        ${section.image ? `<img src="${section.image}" alt="${section.title}" class="feature-image">` : ''}
+                        ${section.buttonText ? `
+                            <button class="feature-action-btn" data-index="${index}">
+                                ${section.buttonText}
+                            </button>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+        });
+    }
     
     // Links personalizados
     if (links && links.length > 0) {
