@@ -4,13 +4,22 @@
 
 // Abrir modal de compartilhamento
 window.openShareModal = (cardId) => {
-    const card = CardsManager.getCardById(cardId);
+    console.log('🔗 Abrindo modal de compartilhamento para:', cardId);
+    
+    const card = window.CardsManager.getCardById(cardId);
     if (!card) {
-        console.error('Cartão não encontrado:', cardId);
+        console.error('❌ Cartão não encontrado:', cardId);
         return;
     }
     
-    const shareUrl = `${window.location.origin}/view-card.html?id=${cardId}`;
+    // Gerar URL correta baseada na localização atual
+    const currentUrl = window.location.href;
+    const baseUrl = currentUrl.includes('github.io') 
+        ? 'https://neto-carvalho.github.io/cartao-visita-virtual'
+        : window.location.origin;
+    
+    const shareUrl = `${baseUrl}/view-card.html?id=${cardId}`;
+    console.log('🌐 URL de compartilhamento gerada:', shareUrl);
     
     // Criar modal
     const modal = createShareModal(card, shareUrl);
@@ -284,6 +293,7 @@ window.copyShareLink = () => {
 
 // Compartilhar via WhatsApp
 window.shareViaWhatsApp = (url, cardName) => {
+    console.log('📱 Compartilhando via WhatsApp:', url);
     const text = `Confira meu cartão de visita digital: ${cardName}`;
     const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(text + '\n' + url)}`;
     window.open(whatsappUrl, '_blank');
@@ -291,6 +301,7 @@ window.shareViaWhatsApp = (url, cardName) => {
 
 // Compartilhar via E-mail
 window.shareViaEmail = (url, cardName) => {
+    console.log('📧 Compartilhando via Email:', url);
     const subject = `Cartão de Visita Digital - ${cardName}`;
     const body = `Olá!\n\nGostaria de compartilhar meu cartão de visita digital com você.\n\nAcesse: ${url}\n\nAtenciosamente`;
     const mailtoUrl = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
@@ -299,6 +310,7 @@ window.shareViaEmail = (url, cardName) => {
 
 // Compartilhar via Telegram
 window.shareViaTelegram = (url, cardName) => {
+    console.log('📨 Compartilhando via Telegram:', url);
     const text = `Confira meu cartão de visita digital: ${cardName}`;
     const telegramUrl = `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`;
     window.open(telegramUrl, '_blank');
