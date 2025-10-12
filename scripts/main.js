@@ -11,7 +11,7 @@ const initializeMainPage = () => {
     console.log('🏠 Inicializando página principal...');
     
     initializeHeroAnimations();
-    initializeCardShowcase();
+    initializeCarousel();
     initializeScrollEffects();
     initializeCTAButtons();
     
@@ -45,35 +45,91 @@ const initializeHeroAnimations = () => {
 };
 
 // ==========================================================================
-// SHOWCASE DE CARTÕES
+// CAROUSEL DE EXEMPLOS
 // ==========================================================================
 
-const initializeCardShowcase = () => {
-    const showcaseCards = document.querySelectorAll('.showcase-card');
-    let currentIndex = 0;
+const initializeCarousel = () => {
+    const track = document.getElementById('carouselTrack');
+    const slides = document.querySelectorAll('.carousel-slide');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const dotsContainer = document.getElementById('carouselDots');
     
-    // Função para alternar cartões
-    const switchCard = () => {
-        // Remover classe active de todos
-        showcaseCards.forEach(card => card.classList.remove('active'));
+    if (!track || slides.length === 0) return;
+    
+    let currentSlide = 0;
+    const totalSlides = slides.length;
+    
+    // Criar dots
+    slides.forEach((_, index) => {
+        const dot = document.createElement('button');
+        dot.classList.add('carousel-dot');
+        if (index === 0) dot.classList.add('active');
+        dot.addEventListener('click', () => goToSlide(index));
+        dotsContainer.appendChild(dot);
+    });
+    
+    const dots = document.querySelectorAll('.carousel-dot');
+    
+    // Função para ir para um slide específico
+    const goToSlide = (index) => {
+        currentSlide = index;
+        const offset = -currentSlide * 100;
+        track.style.transform = `translateX(${offset}%)`;
         
-        // Adicionar classe active ao atual
-        showcaseCards[currentIndex].classList.add('active');
-        
-        // Próximo índice
-        currentIndex = (currentIndex + 1) % showcaseCards.length;
+        // Atualizar dots
+        dots.forEach((dot, i) => {
+            dot.classList.toggle('active', i === currentSlide);
+        });
     };
     
-    // Iniciar rotação automática
-    setInterval(switchCard, 4000);
-    
-    // Alternar manualmente ao clicar
-    showcaseCards.forEach((card, index) => {
-        card.addEventListener('click', () => {
-            currentIndex = index;
-            switchCard();
+    // Botão anterior
+    if (prevBtn) {
+        prevBtn.addEventListener('click', () => {
+            currentSlide = (currentSlide - 1 + totalSlides) % totalSlides;
+            goToSlide(currentSlide);
         });
+    }
+    
+    // Botão próximo
+    if (nextBtn) {
+        nextBtn.addEventListener('click', () => {
+            currentSlide = (currentSlide + 1) % totalSlides;
+            goToSlide(currentSlide);
+        });
+    }
+    
+    // Auto-play (opcional)
+    setInterval(() => {
+        currentSlide = (currentSlide + 1) % totalSlides;
+        goToSlide(currentSlide);
+    }, 5000);
+    
+    // Suporte para touch/swipe em mobile
+    let touchStartX = 0;
+    let touchEndX = 0;
+    
+    track.addEventListener('touchstart', (e) => {
+        touchStartX = e.changedTouches[0].screenX;
     });
+    
+    track.addEventListener('touchend', (e) => {
+        touchEndX = e.changedTouches[0].screenX;
+        handleSwipe();
+    });
+    
+    const handleSwipe = () => {
+        if (touchEndX < touchStartX - 50) {
+            // Swipe left
+            currentSlide = (currentSlide + 1) % totalSlides;
+            goToSlide(currentSlide);
+        }
+        if (touchEndX > touchStartX + 50) {
+            // Swipe right
+            currentSlide = (currentSlide - 1 + totalSlides) % totalSlides;
+            goToSlide(currentSlide);
+        }
+    };
 };
 
 // ==========================================================================
