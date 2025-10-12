@@ -25,8 +25,16 @@ window.openShareModal = (cardId) => {
     const modal = createShareModal(card, shareUrl);
     document.body.appendChild(modal);
     
-    // Gerar QR Code
-    setTimeout(() => generateQRCode(shareUrl), 100);
+    // Gerar QR Code com delay para garantir que a biblioteca esteja carregada
+    setTimeout(() => {
+        // Verificar se QRCode está disponível, se não, tentar novamente
+        if (typeof QRCode === 'undefined') {
+            console.log('⏳ QRCode ainda não carregado, tentando novamente...');
+            setTimeout(() => generateQRCode(shareUrl), 500);
+        } else {
+            generateQRCode(shareUrl);
+        }
+    }, 100);
     
     // Animar entrada
     requestAnimationFrame(() => {
@@ -242,12 +250,32 @@ const createShareModal = (card, shareUrl) => {
 
 // Gerar QR Code
 const generateQRCode = (url) => {
+    console.log('📱 Gerando QR Code para URL:', url);
+    
     const container = document.getElementById('qrcode-container');
-    if (!container) return;
+    if (!container) {
+        console.error('❌ Container qrcode-container não encontrado');
+        return;
+    }
     
     container.innerHTML = '';
     
-    if (typeof QRCode !== 'undefined') {
+    // Verificar se a biblioteca QRCode está disponível
+    if (typeof QRCode === 'undefined') {
+        console.error('❌ Biblioteca QRCode não está disponível');
+        container.innerHTML = `
+            <div style="width: 200px; height: 200px; background: #F3F4F6; border-radius: 0.5rem; display: flex; align-items: center; justify-content: center; color: #6B7280; text-align: center; padding: 1rem;">
+                <div>
+                    <i class="fas fa-exclamation-triangle" style="font-size: 2rem; margin-bottom: 0.5rem;"></i><br/>
+                    QR Code<br/>não disponível
+                </div>
+            </div>
+        `;
+        return;
+    }
+    
+    try {
+        console.log('✅ Biblioteca QRCode encontrada, gerando...');
         new QRCode(container, {
             text: url,
             width: 200,
@@ -256,8 +284,28 @@ const generateQRCode = (url) => {
             colorLight: "#ffffff",
             correctLevel: QRCode.CorrectLevel.H
         });
-    } else {
-        container.innerHTML = `<div style="width: 200px; height: 200px; background: #F3F4F6; border-radius: 0.5rem; display: flex; align-items: center; justify-content: center; color: #6B7280;">QR Code<br/>não disponível</div>`;
+        console.log('✅ QR Code gerado com sucesso');
+        
+        // Adicionar evento de clique para testar
+        const canvas = container.querySelector('canvas');
+        if (canvas) {
+            canvas.style.cursor = 'pointer';
+            canvas.title = 'Clique para testar o QR Code';
+            canvas.addEventListener('click', () => {
+                console.log('🔍 Testando QR Code - abrindo URL:', url);
+                window.open(url, '_blank');
+            });
+        }
+    } catch (error) {
+        console.error('❌ Erro ao gerar QR Code:', error);
+        container.innerHTML = `
+            <div style="width: 200px; height: 200px; background: #FEF2F2; border: 2px solid #FECACA; border-radius: 0.5rem; display: flex; align-items: center; justify-content: center; color: #DC2626; text-align: center; padding: 1rem;">
+                <div>
+                    <i class="fas fa-exclamation-circle" style="font-size: 2rem; margin-bottom: 0.5rem;"></i><br/>
+                    Erro ao gerar<br/>QR Code
+                </div>
+            </div>
+        `;
     }
 };
 
