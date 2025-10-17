@@ -79,14 +79,43 @@ const clearEditorData = () => {
 
 const loadSavedData = () => {
     // Os dados já estão carregados em window.appState pelo app.js
-    console.log('Dados carregados:', window.appState);
+    console.log('📋 Dados carregados no editor:', window.appState);
+    console.log('📋 Personal Info:', window.appState.personalInfo);
+    console.log('📋 Design:', window.appState.design);
+    console.log('📋 Links:', window.appState.links);
+    console.log('📋 Feature Sections:', window.appState.featureSections);
+    
+    // Verificar se está editando um cartão
+    const editingCardId = localStorage.getItem('editing-card-id');
+    if (editingCardId) {
+        console.log('🔍 Modo de edição detectado. ID do cartão:', editingCardId);
+        
+        // Aguardar um pouco para garantir que os dados foram carregados
+        setTimeout(() => {
+            console.log('📋 Dados após timeout:', window.appState);
+            if (window.appState.personalInfo && window.appState.personalInfo.fullName) {
+                console.log('✅ Dados do cartão carregados corretamente');
+            } else {
+                console.warn('⚠️ Dados do cartão não foram carregados, tentando novamente...');
+                // Tentar carregar novamente
+                if (window.CardsManager) {
+                    const card = window.CardsManager.getCardById(editingCardId);
+                    if (card && card.data) {
+                        console.log('🔄 Recarregando dados do cartão...');
+                        Object.assign(window.appState, card.data);
+                        console.log('✅ Dados recarregados:', window.appState);
+                    }
+                }
+            }
+        }, 500);
+    }
 };
 
-const saveData = () => {
+const saveData = async () => {
     // Salvar no localStorage através do app.js
     if (window.Utils && typeof window.Utils.saveToStorage === 'function') {
         console.log('💾 Salvando dados do editor...');
-        const success = window.Utils.saveToStorage(window.appState);
+        const success = await window.Utils.saveToStorage(window.appState);
         if (!success) {
             console.warn('⚠️ Falha ao salvar dados, mas continuando...');
         }
@@ -131,9 +160,9 @@ const initializePersonalInfo = () => {
     // Adicionar event listeners
     Object.keys(inputs).forEach(key => {
         if (inputs[key]) {
-            inputs[key].addEventListener('input', (e) => {
+            inputs[key].addEventListener('input', async (e) => {
                 window.appState.personalInfo[key] = e.target.value;
-                saveData();
+                await saveData();
                 if (typeof window.updatePreview === 'function') {
                     window.updatePreview();
                 }
@@ -326,9 +355,9 @@ const handleImageFile = (file) => {
 
     // Converter para base64
     const reader = new FileReader();
-    reader.onload = (e) => {
+    reader.onload = async (e) => {
         window.appState.image = e.target.result;
-        saveData();
+        await saveData();
         showImagePreview(e.target.result);
         if (typeof window.updatePreview === 'function') {
             window.updatePreview(true);
@@ -356,13 +385,13 @@ const showImagePreview = (imageSrc) => {
 };
 
 // Função global para remover imagem
-window.removeImage = () => {
+window.removeImage = async () => {
     const uploadArea = document.getElementById('uploadArea');
     const imagePreview = document.getElementById('imagePreview');
     const imageInput = document.getElementById('imageInput');
 
     window.appState.image = null;
-    saveData();
+    await saveData();
 
     if (imagePreview) {
         imagePreview.classList.add('hidden');
@@ -397,7 +426,7 @@ const initializeLinksEditor = () => {
     renderLinks();
 };
 
-const addNewLink = () => {
+const addNewLink = async () => {
     const newLink = {
         id: Date.now(),
         type: '',
@@ -407,27 +436,27 @@ const addNewLink = () => {
     };
     
     window.appState.links.push(newLink);
-    saveData();
+    await saveData();
     renderLinks();
     if (typeof window.updatePreview === 'function') {
         window.updatePreview();
     }
 };
 
-const removeLink = (linkId) => {
+const removeLink = async (linkId) => {
     window.appState.links = window.appState.links.filter(link => link.id !== linkId);
-    saveData();
+    await saveData();
     renderLinks();
     if (typeof window.updatePreview === 'function') {
         window.updatePreview();
     }
 };
 
-const updateLink = (linkId, field, value) => {
+const updateLink = async (linkId, field, value) => {
     const link = window.appState.links.find(l => l.id === linkId);
     if (link) {
         link[field] = value;
-        saveData();
+        await saveData();
         if (typeof window.updatePreview === 'function') {
             window.updatePreview();
         }
@@ -549,7 +578,7 @@ const generateCard = async () => {
         window.appState.generatedUrl = cardUrl;
         
         // Salvar dados para o cartão
-        saveData();
+        await saveData();
         
         // Gerar QR Code usando função do qr-generator.js
         if (typeof generateQRCode === 'function') {
@@ -592,6 +621,7 @@ const saveCard = async () => {
     
     // Verificar se está editando um cartão existente
     const editingCardId = localStorage.getItem('editing-card-id');
+    console.log('🔍 Verificando modo de edição. editing-card-id:', editingCardId);
     
     if (editingCardId) {
         console.log('📝 Atualizando cartão existente:', editingCardId);
@@ -620,15 +650,13 @@ const saveCard = async () => {
                     // Marcar que houve uma atualização
                     localStorage.setItem('card-updated', 'true');
                     
-                    // Limpar dados temporários
-                    localStorage.removeItem('editing-card-id');
-                    localStorage.removeItem('virtual-card-data');
-                    
                     // Mostrar notificação de sucesso
                     window.showCustomNotification('Cartão atualizado e salvo no seu perfil!', 'success', 3000);
                     
-                    // Redirecionar para o perfil após 2 segundos
+                    // Limpar dados temporários APÓS mostrar a notificação
                     setTimeout(() => {
+                        localStorage.removeItem('editing-card-id');
+                        localStorage.removeItem('virtual-card-data');
                         window.location.href = 'profile.html';
                     }, 2000);
                     return;
@@ -690,7 +718,7 @@ const saveCard = async () => {
     } else {
         console.warn('⚠️ CardsManager não disponível, usando fallback');
         // Fallback: salvar apenas no localStorage
-        saveData();
+        await saveData();
         
         window.showCustomNotification('Cartão salvo com sucesso!', 'success', 3000);
     }
@@ -746,11 +774,11 @@ const exportCardData = () => {
 /**
  * Importar dados do cartão de JSON
  */
-const importCardData = (jsonData) => {
+const importCardData = async (jsonData) => {
     try {
         const importedData = JSON.parse(jsonData);
         Object.assign(window.appState, importedData);
-        saveData();
+        await saveData();
         if (typeof window.updatePreview === 'function') {
             window.updatePreview(true);
         }

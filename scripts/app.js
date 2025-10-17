@@ -37,10 +37,10 @@ const CONFIG = {
 // Utilitários gerais
 const Utils = {
     // Salvar dados no localStorage
-    saveToStorage: (data) => {
+    saveToStorage: async (data) => {
         try {
-            // Otimizar dados antes de salvar
-            const optimizedData = Utils.optimizeDataForStorage(data);
+            // Otimizar dados antes de salvar (agora é assíncrono)
+            const optimizedData = await Utils.optimizeDataForStorage(data);
             
             // Verificar se os dados cabem no localStorage
             const dataString = JSON.stringify(optimizedData);
@@ -72,7 +72,23 @@ const Utils = {
                     return true;
                 } catch (retryError) {
                     console.error('❌ Erro ao salvar mesmo sem imagens:', retryError);
-                    return false;
+                    // Última tentativa: limpar localStorage e salvar apenas dados essenciais
+                    try {
+                        console.log('🧹 Limpando localStorage completamente...');
+                        localStorage.clear();
+                        const minimalData = {
+                            personalInfo: data.personalInfo || {},
+                            design: data.design || {},
+                            links: data.links || [],
+                            featureSections: []
+                        };
+                        localStorage.setItem(CONFIG.LOCAL_STORAGE_KEY, JSON.stringify(minimalData));
+                        console.log('✅ Dados mínimos salvos');
+                        return true;
+                    } catch (finalError) {
+                        console.error('❌ Erro final ao salvar:', finalError);
+                        return false;
+                    }
                 }
             }
             
@@ -169,26 +185,38 @@ const Utils = {
     },
 
     // Otimizar dados para armazenamento
-    optimizeDataForStorage: (data) => {
+    optimizeDataForStorage: async (data) => {
         const optimized = { ...data };
         
-        // Comprimir imagens se forem muito grandes (apenas se for string base64)
-        if (optimized.image && typeof optimized.image === 'string' && optimized.image.length > 100000) {
+        // Comprimir imagem principal se for muito grande
+        if (optimized.image && typeof optimized.image === 'string' && optimized.image.length > 30000) {
             console.log('🖼️ Imagem muito grande, comprimindo...');
-            // Não comprimir aqui para evitar problemas, apenas avisar
-            console.warn('⚠️ Imagem muito grande, mas mantendo original para evitar erros');
+            try {
+                optimized.image = await Utils.compressImage(optimized.image);
+                console.log('✅ Imagem principal comprimida');
+            } catch (error) {
+                console.warn('⚠️ Erro ao comprimir imagem principal:', error);
+                // Se falhar, remover a imagem
+                optimized.image = null;
+            }
         }
         
-        // Comprimir imagens das seções de destaque (apenas se for string base64)
+        // Comprimir imagens das seções de destaque
         if (optimized.featureSections) {
-            optimized.featureSections = optimized.featureSections.map(section => {
-                if (section.image && typeof section.image === 'string' && section.image.length > 100000) {
+            for (let i = 0; i < optimized.featureSections.length; i++) {
+                const section = optimized.featureSections[i];
+                if (section.image && typeof section.image === 'string' && section.image.length > 30000) {
                     console.log('🖼️ Imagem de seção muito grande, comprimindo...');
-                    // Não comprimir aqui para evitar problemas, apenas avisar
-                    console.warn('⚠️ Imagem de seção muito grande, mas mantendo original para evitar erros');
+                    try {
+                        optimized.featureSections[i].image = await Utils.compressImage(section.image);
+                        console.log('✅ Imagem de seção comprimida');
+                    } catch (error) {
+                        console.warn('⚠️ Erro ao comprimir imagem de seção:', error);
+                        // Se falhar, remover a imagem
+                        optimized.featureSections[i].image = null;
+                    }
                 }
-                return section;
-            });
+            }
         }
         
         return optimized;
@@ -218,16 +246,16 @@ const Utils = {
     },
 
     // Comprimir imagem base64
-    compressImage: (base64String, quality = 0.7) => {
+    compressImage: (base64String, quality = 0.2) => {
         return new Promise((resolve) => {
             const canvas = document.createElement('canvas');
             const ctx = canvas.getContext('2d');
             const img = new Image();
             
             img.onload = () => {
-                // Redimensionar se for muito grande
-                const maxWidth = 800;
-                const maxHeight = 600;
+                // Redimensionar mais agressivamente
+                const maxWidth = 300;
+                const maxHeight = 200;
                 
                 let { width, height } = img;
                 
@@ -243,7 +271,13 @@ const Utils = {
                 ctx.drawImage(img, 0, 0, width, height);
                 
                 const compressedBase64 = canvas.toDataURL('image/jpeg', quality);
+                console.log(`📊 Imagem comprimida: ${base64String.length} -> ${compressedBase64.length} bytes`);
                 resolve(compressedBase64);
+            };
+            
+            img.onerror = () => {
+                console.warn('⚠️ Erro ao carregar imagem para compressão');
+                resolve(base64String);
             };
             
             img.src = base64String;
@@ -261,12 +295,18 @@ const Utils = {
                 }
             }
             
-            // Se estiver usando mais de 4MB, limpar dados antigos
-            if (totalSize > 4 * 1024 * 1024) {
+            // Se estiver usando mais de 2MB, limpar dados antigos
+            if (totalSize > 2 * 1024 * 1024) {
                 console.log('🧹 localStorage muito cheio, limpando dados antigos...');
                 
-                // Manter apenas dados essenciais
-                const essentialKeys = ['virtual-cards-collection', 'virtual-card-settings'];
+                // Manter apenas dados essenciais E dados de edição
+                const essentialKeys = [
+                    'virtual-cards-collection', 
+                    'virtual-card-settings',
+                    'editing-card-id',
+                    'virtual-card-data',
+                    'creating-new-card'
+                ];
                 const keysToRemove = [];
                 
                 for (let key in localStorage) {
@@ -413,11 +453,12 @@ const Utils = {
 const initializeApp = () => {
     console.log('🚀 Inicializando aplicação...');
     
-    // Limpar localStorage se necessário
-    Utils.clearStorageIfNeeded();
-    
-    // Verificar se está editando um cartão existente
+    // Verificar se está editando um cartão existente ANTES de limpar
     const editingCardId = localStorage.getItem('editing-card-id');
+    
+    // Limpar localStorage se necessário (mas preservar dados de edição)
+    Utils.clearStorageIfNeeded();
+    console.log('🔍 Verificando editing-card-id no app.js:', editingCardId);
     if (editingCardId) {
         console.log('📝 Modo de edição detectado para cartão:', editingCardId);
         loadCardForEditing(editingCardId);
@@ -447,38 +488,69 @@ const initializeApp = () => {
 // Carregar dados de um cartão específico para edição
 const loadCardForEditing = (cardId) => {
     console.log('🔄 Carregando cartão para edição:', cardId);
+    console.log('🔍 CardsManager disponível?', !!window.CardsManager);
     
     // Tentar carregar via CardsManager primeiro
     if (window.CardsManager) {
+        console.log('📋 Buscando cartão via CardsManager...');
         const card = window.CardsManager.getCardById(cardId);
+        console.log('📋 Cartão encontrado:', card);
+        
         if (card && card.data) {
             console.log('✅ Cartão encontrado via CardsManager:', card);
+            console.log('📋 Dados do cartão:', card.data);
+            
+            // Limpar appState primeiro
+            Object.keys(appState).forEach(key => {
+                delete appState[key];
+            });
+            
+            // Carregar dados do cartão
             Object.assign(appState, card.data);
-            console.log('✅ Dados do cartão carregados no appState');
+            console.log('✅ Dados do cartão carregados no appState:', appState);
+            console.log('📋 Personal Info após carregamento:', appState.personalInfo);
             return;
+        } else {
+            console.warn('⚠️ Cartão não encontrado ou sem dados via CardsManager');
         }
+    } else {
+        console.warn('⚠️ CardsManager não disponível');
     }
     
     // Fallback: tentar carregar do localStorage
+    console.log('🔄 Tentando fallback via localStorage...');
     const cardData = localStorage.getItem('virtual-card-data');
+    console.log('📋 Dados do localStorage:', cardData ? 'Presente' : 'Ausente');
+    
     if (cardData) {
         try {
             const data = JSON.parse(cardData);
+            console.log('📋 Dados parseados do localStorage:', data);
+            
+            // Limpar appState primeiro
+            Object.keys(appState).forEach(key => {
+                delete appState[key];
+            });
+            
+            // Carregar dados do localStorage
             Object.assign(appState, data);
-            console.log('✅ Dados carregados do localStorage (fallback)');
+            console.log('✅ Dados carregados do localStorage (fallback):', appState);
+            console.log('📋 Personal Info após fallback:', appState.personalInfo);
         } catch (error) {
             console.error('❌ Erro ao carregar dados do cartão:', error);
         }
+    } else {
+        console.warn('⚠️ Nenhum dado encontrado no localStorage');
     }
 };
 
 // Configurar eventos globais
 const setupGlobalEvents = () => {
     // Auto-save com debounce (só salva após 5 segundos de inatividade)
-    const debouncedSave = Utils.debounce(() => {
+    const debouncedSave = Utils.debounce(async () => {
         if (window.appState) {
             console.log('💾 Auto-save executado...');
-            Utils.saveToStorage(window.appState);
+            await Utils.saveToStorage(window.appState);
         }
     }, 5000);
     
@@ -490,11 +562,20 @@ const setupGlobalEvents = () => {
         set(target, property, value) {
             target[property] = value;
             
-            // Cancelar save anterior e agendar novo
-            clearTimeout(saveTimeout);
-            saveTimeout = setTimeout(() => {
-                debouncedSave();
-            }, 1000);
+            // Verificar se há imagens grandes antes de salvar
+            const hasLargeImages = (target.image && target.image.length > 100000) || 
+                                 (target.featureSections && target.featureSections.some(section => 
+                                     section.image && section.image.length > 100000));
+            
+            if (!hasLargeImages) {
+                // Cancelar save anterior e agendar novo
+                clearTimeout(saveTimeout);
+                saveTimeout = setTimeout(() => {
+                    debouncedSave();
+                }, 1000);
+            } else {
+                console.log('⚠️ Imagens grandes detectadas, pulando auto-save');
+            }
             
             return true;
         }
@@ -504,8 +585,8 @@ const setupGlobalEvents = () => {
     window.appState = proxyAppState;
 
     // Salvar antes de sair da página
-    window.addEventListener('beforeunload', () => {
-        Utils.saveToStorage(appState);
+    window.addEventListener('beforeunload', async () => {
+        await Utils.saveToStorage(appState);
     });
 
     // Atualizar preview quando dados mudarem

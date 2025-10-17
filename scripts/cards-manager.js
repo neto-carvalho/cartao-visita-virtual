@@ -104,15 +104,22 @@ const CardsManager = {
             return null;
         }
         
+        console.log('📊 Total de cartões encontrados:', data.cards.length);
+        console.log('🔍 Procurando cartão com ID:', cardId);
+        
         const cardIndex = data.cards.findIndex(card => card.id === cardId);
         
         if (cardIndex === -1) {
             console.error('❌ Cartão não encontrado:', cardId);
+            console.log('📋 IDs dos cartões disponíveis:', data.cards.map(card => card.id));
             return null;
         }
         
+        console.log('✅ Cartão encontrado no índice:', cardIndex);
+        
         // Criar uma cópia do cartão atual
         const currentCard = { ...data.cards[cardIndex] };
+        console.log('📋 Cartão atual:', currentCard);
         
         // Aplicar as atualizações
         const updatedCard = {
@@ -120,6 +127,8 @@ const CardsManager = {
             ...updates,
             updatedAt: new Date().toISOString()
         };
+        
+        console.log('📋 Cartão atualizado:', updatedCard);
         
         // Substituir o cartão na lista
         data.cards[cardIndex] = updatedCard;

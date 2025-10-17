@@ -2,6 +2,8 @@
    PROFILE.JS - Lógica da Interface de Perfil
    ========================================================================== */
 
+console.log('📄 Profile.js carregado!');
+
 document.addEventListener('DOMContentLoaded', () => {
     initializeProfile();
 });
@@ -255,6 +257,8 @@ window.editCard = (cardId) => {
         localStorage.setItem('editing-card-id', cardId);
         
         console.log('✅ Dados salvos no localStorage para edição');
+        console.log('🔍 Verificando se editing-card-id foi salvo:', localStorage.getItem('editing-card-id'));
+        console.log('🔍 Verificando se virtual-card-data foi salvo:', localStorage.getItem('virtual-card-data') ? 'Sim' : 'Não');
         console.log('🔄 Redirecionando para o editor...');
         
         // Redirecionar para o editor
