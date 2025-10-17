@@ -662,6 +662,108 @@
             font-size: 18px;
             font-weight: 600;
         }
+        
+        /* Menu Mobile Responsivo */
+        @media (max-width: 768px) {
+            .header-nav {
+                position: fixed;
+                top: 0;
+                right: -100%;
+                width: 280px;
+                height: 100vh;
+                background: white;
+                border-left: 1px solid #e5e7eb;
+                padding: 1rem;
+                box-shadow: -4px 0 6px -1px rgba(0, 0, 0, 0.1);
+                flex-direction: column;
+                gap: 0.5rem;
+                transition: right 0.3s ease;
+                z-index: 1002;
+                overflow-y: auto;
+            }
+            
+            .header-nav.show {
+                right: 0;
+            }
+            
+            .nav-link {
+                justify-content: flex-start;
+                padding: 1rem;
+                border-radius: 0.5rem;
+                width: 100%;
+                font-size: 1rem;
+                border-bottom: 1px solid #f3f4f6;
+            }
+            
+            .nav-link:last-child {
+                border-bottom: none;
+            }
+            
+            .nav-link span {
+                display: block;
+                margin-left: 0.75rem;
+            }
+            
+            .mobile-menu-btn {
+                display: flex !important;
+                position: fixed !important;
+                top: 15px !important;
+                right: 15px !important;
+                z-index: 1001 !important;
+                background: #3b82f6 !important;
+                border: 2px solid #ffffff !important;
+                box-shadow: 0 4px 20px rgba(59, 130, 246, 0.4) !important;
+                width: 50px !important;
+                height: 50px !important;
+                border-radius: 50% !important;
+                align-items: center !important;
+                justify-content: center !important;
+                font-size: 1.3rem !important;
+                color: #ffffff !important;
+                cursor: pointer !important;
+            }
+            
+            /* Overlay para fechar menu */
+            .menu-overlay {
+                display: none !important;
+            }
+        }
+        
+        @media (min-width: 769px) {
+            .mobile-menu-btn {
+                display: none;
+            }
+            
+            .menu-overlay {
+                display: none !important;
+            }
+        }
+        
+        .mobile-menu-btn {
+            display: none;
+            background: #3b82f6;
+            border: 2px solid #ffffff;
+            font-size: 1.3rem;
+            color: #ffffff;
+            cursor: pointer;
+            padding: 0;
+            border-radius: 50%;
+            transition: all 0.2s ease;
+            width: 50px;
+            height: 50px;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .mobile-menu-btn:hover {
+            background: #2563eb !important;
+            transform: scale(1.05);
+        }
+        
+        .mobile-menu-btn.active {
+            background: #1d4ed8 !important;
+            transform: scale(0.95);
+        }
 
         .custom-modal-body {
             padding: 25px;
@@ -839,6 +941,7 @@
 </head>
 <body>
     <!-- Header -->
+    
     <header class="bg-white shadow-sm border-b border-gray-100 sticky top-0 z-50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center h-16">
@@ -848,16 +951,23 @@
                         <span class="font-poppins font-bold text-xl">Visita Virtual</span>
                     </a>
                 </div>
-                <nav class="flex space-x-4">
-                    <a href="index.html" class="flex items-center space-x-2 px-3 py-2 rounded-lg text-gray-600 hover:text-blue-600 hover:bg-blue-50 transition-colors">
+                
+                <!-- Botão de menu mobile -->
+                <button class="mobile-menu-btn" id="mobileMenuBtn" onclick="toggleMobileMenu()">
+                    <i class="fas fa-bars"></i>
+                </button>
+                
+                <!-- Navegação -->
+                <nav class="header-nav flex space-x-4" id="headerNav">
+                    <a href="index.html" class="nav-link flex items-center space-x-2 px-3 py-2 rounded-lg text-gray-600 hover:text-blue-600 hover:bg-blue-50 transition-colors">
                         <i class="fas fa-home"></i>
                         <span>Início</span>
                     </a>
-                    <a href="editor.html" class="flex items-center space-x-2 px-3 py-2 rounded-lg text-blue-600 bg-blue-50 transition-colors">
+                    <a href="editor.html" class="nav-link flex items-center space-x-2 px-3 py-2 rounded-lg text-blue-600 bg-blue-50 transition-colors">
                         <i class="fas fa-edit"></i>
                         <span>Editor</span>
                     </a>
-                    <a href="profile.html" class="flex items-center space-x-2 px-3 py-2 rounded-lg text-gray-600 hover:text-blue-600 hover:bg-blue-50 transition-colors">
+                    <a href="profile.html" class="nav-link flex items-center space-x-2 px-3 py-2 rounded-lg text-gray-600 hover:text-blue-600 hover:bg-blue-50 transition-colors">
                         <i class="fas fa-user"></i>
                         <span>Perfil</span>
                     </a>
@@ -1139,5 +1249,56 @@
     <script src="scripts/links.js?v=6.0"></script>
     <script src="scripts/features.js?v=6.0"></script>
     <script src="scripts/qr-generator.js?v=6.0"></script>
+    
+    <script>
+        // Função para toggle do menu mobile
+        function toggleMobileMenu() {
+            const nav = document.getElementById('headerNav');
+            const menuBtn = document.getElementById('mobileMenuBtn');
+            
+            nav.classList.toggle('show');
+            menuBtn.classList.toggle('active');
+            
+            // Prevenir scroll do body quando menu estiver aberto
+            if (nav.classList.contains('show')) {
+                document.body.style.overflow = 'hidden';
+            } else {
+                document.body.style.overflow = '';
+            }
+        }
+        
+        // Função para fechar menu
+        function closeMobileMenu() {
+            const nav = document.getElementById('headerNav');
+            const menuBtn = document.getElementById('mobileMenuBtn');
+            
+            nav.classList.remove('show');
+            menuBtn.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+        
+        // Fechar menu ao redimensionar para desktop
+        window.addEventListener('resize', function() {
+            if (window.innerWidth > 768) {
+                closeMobileMenu();
+            }
+        });
+        
+        // Fechar menu ao clicar em um link
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', function() {
+                if (window.innerWidth <= 768) {
+                    closeMobileMenu();
+                }
+            });
+        });
+        
+        // Fechar menu com tecla ESC
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                closeMobileMenu();
+            }
+        });
+    </script>
 </body>
 </html>

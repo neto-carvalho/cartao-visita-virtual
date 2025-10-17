@@ -663,6 +663,9 @@ const saveCard = async () => {
             if (newCard) {
                 console.log('✅ Novo cartão criado com sucesso:', newCard);
                 
+                // Marcar que houve uma atualização para forçar refresh no perfil
+                localStorage.setItem('card-updated', 'true');
+                
                 // Mostrar notificação de sucesso
                 window.showCustomNotification('Cartão salvo no seu perfil com sucesso!', 'success', 3000);
                 
