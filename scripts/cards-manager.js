@@ -96,23 +96,44 @@ const CardsManager = {
     
     // Atualizar cartão
     updateCard(cardId, updates) {
-        const data = this.loadAll();
-        const cardIndex = data.cards.findIndex(card => card.id === cardId);
+        console.log('🔄 Atualizando cartão:', cardId, updates);
         
-        if (cardIndex === -1) {
-            console.error('Cartão não encontrado:', cardId);
+        const data = this.loadAll();
+        if (!data || !data.cards) {
+            console.error('❌ Dados não encontrados');
             return null;
         }
         
-        data.cards[cardIndex] = {
-            ...data.cards[cardIndex],
+        const cardIndex = data.cards.findIndex(card => card.id === cardId);
+        
+        if (cardIndex === -1) {
+            console.error('❌ Cartão não encontrado:', cardId);
+            return null;
+        }
+        
+        // Criar uma cópia do cartão atual
+        const currentCard = { ...data.cards[cardIndex] };
+        
+        // Aplicar as atualizações
+        const updatedCard = {
+            ...currentCard,
             ...updates,
             updatedAt: new Date().toISOString()
         };
         
-        this.saveAll(data);
-        console.log('✅ Cartão atualizado:', cardId);
-        return data.cards[cardIndex];
+        // Substituir o cartão na lista
+        data.cards[cardIndex] = updatedCard;
+        
+        // Salvar no localStorage
+        const saveResult = this.saveAll(data);
+        
+        if (saveResult) {
+            console.log('✅ Cartão atualizado com sucesso:', updatedCard);
+            return updatedCard;
+        } else {
+            console.error('❌ Erro ao salvar atualização do cartão');
+            return null;
+        }
     },
     
     // Deletar cartão
@@ -271,6 +292,44 @@ const CardsManager = {
         this.saveAll(data);
         console.log('✅ Usuário atualizado');
         return data.user;
+    },
+    
+    // Salvar usuário completo
+    saveUser(user) {
+        const data = this.loadAll();
+        data.user = user;
+        this.saveAll(data);
+        console.log('✅ Usuário salvo');
+        return user;
+    },
+    
+    // Obter configurações
+    getSettings() {
+        try {
+            const settings = localStorage.getItem('virtual-card-settings');
+            return settings ? JSON.parse(settings) : {
+                emailNotifications: true,
+                autoSave: true
+            };
+        } catch (error) {
+            console.error('Erro ao carregar configurações:', error);
+            return {
+                emailNotifications: true,
+                autoSave: true
+            };
+        }
+    },
+    
+    // Salvar configurações
+    saveSettings(settings) {
+        try {
+            localStorage.setItem('virtual-card-settings', JSON.stringify(settings));
+            console.log('✅ Configurações salvas');
+            return settings;
+        } catch (error) {
+            console.error('Erro ao salvar configurações:', error);
+            return null;
+        }
     }
 };
 

@@ -270,9 +270,14 @@ const handleFeatureImageUpload = (event, index) => {
         const imageData = e.target.result;
         console.log('✅ Imagem convertida para base64');
         
-        // Atualizar estado
-        window.appState.featureSections[index].image = imageData;
-        console.log('💾 Estado atualizado com imagem');
+        // Atualizar estado (garantir que é uma string)
+        if (typeof imageData === 'string') {
+            window.appState.featureSections[index].image = imageData;
+            console.log('💾 Estado atualizado com imagem');
+        } else {
+            console.error('❌ Erro: imageData não é uma string válida:', typeof imageData);
+            return;
+        }
         
         // Atualizar preview da imagem
         const featureDiv = document.querySelector(`[data-feature-index="${index}"]`);
@@ -281,7 +286,7 @@ const handleFeatureImageUpload = (event, index) => {
             const previewContainer = featureDiv.querySelector('.feature-image-preview');
             const placeholder = featureDiv.querySelector('.feature-image-placeholder');
             
-            if (preview && previewContainer && placeholder) {
+            if (preview && previewContainer && placeholder && typeof imageData === 'string') {
                 preview.src = imageData;
                 previewContainer.classList.remove('hidden');
                 placeholder.classList.add('hidden');

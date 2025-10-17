@@ -83,7 +83,7 @@ const generateCardContent = (personalInfo, image, links, featureSections = [], s
     let content = '';
     
     // Imagem de perfil
-    if (image) {
+    if (image && typeof image === 'string') {
         content += `<img src="${image}" alt="Foto de perfil" class="profile-image">`;
     } else {
         content += `<div class="profile-image placeholder">
@@ -153,7 +153,7 @@ const generateCardContent = (personalInfo, image, links, featureSections = [], s
                     <div class="feature-section-content">
                         <h3 class="feature-title">${section.title || 'Título da Seção'}</h3>
                         <p class="feature-description">${section.description || 'Descrição da seção'}</p>
-                        ${section.image ? `<img src="${section.image}" alt="${section.title}" class="feature-image">` : ''}
+                        ${section.image && typeof section.image === 'string' ? `<img src="${section.image}" alt="${section.title}" class="feature-image">` : ''}
                         ${section.buttonText ? `
                             <button class="feature-action-btn" data-index="${index}">
                                 ${section.buttonText}

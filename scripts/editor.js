@@ -19,6 +19,14 @@ document.addEventListener('DOMContentLoaded', () => {
 const initializeEditor = () => {
     console.log('📝 Inicializando editor...');
     
+    // Verificar se é um novo cartão e limpar dados se necessário
+    const isNewCard = localStorage.getItem('creating-new-card');
+    if (isNewCard) {
+        console.log('🆕 Novo cartão detectado - limpando dados...');
+        clearEditorData();
+        localStorage.removeItem('creating-new-card');
+    }
+    
     loadSavedData();
     initializePersonalInfo();
     initializeDesign();
@@ -29,6 +37,40 @@ const initializeEditor = () => {
     // updatePreview() é chamado automaticamente por preview.js
     
     console.log('✅ Editor inicializado');
+};
+
+// Limpar dados do editor para novo cartão
+const clearEditorData = () => {
+    console.log('🧹 Limpando dados do editor...');
+    
+    // Resetar para estado inicial
+    Object.assign(window.appState, {
+        personalInfo: {
+            fullName: '',
+            jobTitle: '',
+            description: '',
+            email: '',
+            phone: ''
+        },
+        design: {
+            theme: 'gradient-pink',
+            primaryColor: '#00BFFF',
+            secondaryColor: '#EEE8AA',
+            textColor: '#FFFFFF',
+            buttonTextColor: '#FFFFFF',
+            customGradient: null
+        },
+        image: null,
+        links: [],
+        featureSections: [],
+        showSaveContactButton: true,
+        generatedUrl: null
+    });
+    
+    // Limpar localStorage
+    localStorage.removeItem('virtual-card-data');
+    
+    console.log('✅ Dados do editor limpos');
 };
 
 // ==========================================================================
@@ -43,7 +85,11 @@ const loadSavedData = () => {
 const saveData = () => {
     // Salvar no localStorage através do app.js
     if (window.Utils && typeof window.Utils.saveToStorage === 'function') {
-        window.Utils.saveToStorage(window.appState);
+        console.log('💾 Salvando dados do editor...');
+        const success = window.Utils.saveToStorage(window.appState);
+        if (!success) {
+            console.warn('⚠️ Falha ao salvar dados, mas continuando...');
+        }
     } else {
         localStorage.setItem('virtual-card-data', JSON.stringify(window.appState));
     }
@@ -542,63 +588,104 @@ const generateCard = async () => {
 // Função showGeneratedInfo está implementada em qr-generator.js
 
 const saveCard = async () => {
+    console.log('💾 Iniciando processo de salvamento...');
+    
     // Verificar se está editando um cartão existente
     const editingCardId = localStorage.getItem('editing-card-id');
     
     if (editingCardId) {
+        console.log('📝 Atualizando cartão existente:', editingCardId);
+        
         // Atualizar cartão existente
         if (window.CardsManager) {
-            const defaultName = window.appState.personalInfo.fullName || 'Meu Cartão';
+            // Obter o cartão atual para manter o nome se não for alterado
+            const currentCard = window.CardsManager.getCardById(editingCardId);
+            const defaultName = currentCard ? currentCard.name : (window.appState.personalInfo.fullName || 'Meu Cartão');
+            
             const cardName = await window.showCardNameModal(defaultName);
             
             if (cardName) {
-                window.CardsManager.updateCard(editingCardId, {
+                console.log('✅ Salvando cartão com nome:', cardName);
+                
+                // Atualizar o cartão
+                const updatedCard = window.CardsManager.updateCard(editingCardId, {
                     name: cardName,
-                    data: window.appState
+                    data: { ...window.appState }, // Criar uma cópia dos dados
+                    updatedAt: new Date().toISOString()
                 });
-                localStorage.removeItem('editing-card-id');
                 
-                // Mostrar notificação de sucesso
-                window.showCustomNotification('Cartão atualizado e salvo no seu perfil!', 'success', 3000);
-                
-                // Redirecionar para o perfil após 2 segundos
-                setTimeout(() => {
-                    window.location.href = 'profile.html';
-                }, 2000);
-                return;
+                if (updatedCard) {
+                    console.log('✅ Cartão atualizado com sucesso:', updatedCard);
+                    
+                    // Marcar que houve uma atualização
+                    localStorage.setItem('card-updated', 'true');
+                    
+                    // Limpar dados temporários
+                    localStorage.removeItem('editing-card-id');
+                    localStorage.removeItem('virtual-card-data');
+                    
+                    // Mostrar notificação de sucesso
+                    window.showCustomNotification('Cartão atualizado e salvo no seu perfil!', 'success', 3000);
+                    
+                    // Redirecionar para o perfil após 2 segundos
+                    setTimeout(() => {
+                        window.location.href = 'profile.html';
+                    }, 2000);
+                    return;
+                } else {
+                    console.error('❌ Erro ao atualizar cartão');
+                    window.showCustomNotification('Erro ao atualizar cartão. Tente novamente.', 'error', 3000);
+                    return;
+                }
             }
+        } else {
+            console.error('❌ CardsManager não disponível');
+            window.showCustomNotification('Erro: Sistema de cartões não disponível.', 'error', 3000);
+            return;
         }
     }
     
     // Salvar novo cartão
+    console.log('🆕 Criando novo cartão...');
+    
     if (window.CardsManager) {
         const defaultName = window.appState.personalInfo.fullName || 'Meu Cartão';
         const cardName = await window.showCardNameModal(defaultName);
         
         if (cardName) {
-            window.CardsManager.createCard({
+            console.log('✅ Criando cartão com nome:', cardName);
+            
+            const newCard = window.CardsManager.createCard({
                 name: cardName,
-                data: window.appState
+                data: { ...window.appState } // Criar uma cópia dos dados
             });
             
-            // Mostrar notificação de sucesso
-            window.showCustomNotification('Cartão salvo no seu perfil com sucesso!', 'success', 3000);
-            
-            // Perguntar se deseja ir para o perfil
-            setTimeout(async () => {
-                const goToProfile = await window.showConfirmModal(
-                    '🎉 Cartão Salvo!',
-                    'Seu cartão foi salvo no seu perfil. Deseja visualizar agora?',
-                    'Sim, ver perfil',
-                    'Continuar editando'
-                );
+            if (newCard) {
+                console.log('✅ Novo cartão criado com sucesso:', newCard);
                 
-                if (goToProfile) {
-                    window.location.href = 'profile.html';
-                }
-            }, 1000);
+                // Mostrar notificação de sucesso
+                window.showCustomNotification('Cartão salvo no seu perfil com sucesso!', 'success', 3000);
+                
+                // Perguntar se deseja ir para o perfil
+                setTimeout(async () => {
+                    const goToProfile = await window.showConfirmModal(
+                        '🎉 Cartão Salvo!',
+                        'Seu cartão foi salvo no seu perfil. Deseja visualizar agora?',
+                        'Sim, ver perfil',
+                        'Continuar editando'
+                    );
+                    
+                    if (goToProfile) {
+                        window.location.href = 'profile.html';
+                    }
+                }, 1000);
+            } else {
+                console.error('❌ Erro ao criar cartão');
+                window.showCustomNotification('Erro ao criar cartão. Tente novamente.', 'error', 3000);
+            }
         }
     } else {
+        console.warn('⚠️ CardsManager não disponível, usando fallback');
         // Fallback: salvar apenas no localStorage
         saveData();
         

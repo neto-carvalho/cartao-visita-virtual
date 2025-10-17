@@ -357,23 +357,8 @@ const initializeLazyLoading = () => {
     images.forEach(img => imageObserver.observe(img));
 };
 
-// Preload de recursos críticos
-const preloadCriticalResources = () => {
-    const criticalImages = [
-        'assets/images/hero-bg.jpg',
-        'assets/images/feature-1.svg',
-        'assets/images/feature-2.svg',
-        'assets/images/feature-3.svg'
-    ];
-    
-    criticalImages.forEach(src => {
-        const link = document.createElement('link');
-        link.rel = 'preload';
-        link.as = 'image';
-        link.href = src;
-        document.head.appendChild(link);
-    });
-};
+// Preload desativado: não criar preloads para evitar 404/avisos quando os arquivos não existem
+const preloadCriticalResources = () => {};
 
 // Inicializar otimizações
 initializeLazyLoading();
