@@ -53,6 +53,35 @@ const CardsManager = {
             return true;
         } catch (error) {
             console.error('Erro ao salvar dados:', error);
+            
+            // Se for erro de quota, tentar limpar e salvar novamente
+            if (error.name === 'QuotaExceededError') {
+                console.log('🧹 Quota excedida, tentando limpar dados antigos...');
+                
+                try {
+                    // Limpar dados antigos
+                    this.clearOldData();
+                    
+                    // Tentar salvar novamente
+                    localStorage.setItem(this.STORAGE_KEY, JSON.stringify(data));
+                    console.log('✅ Dados salvos após limpeza');
+                    return true;
+                } catch (retryError) {
+                    console.error('❌ Erro mesmo após limpeza:', retryError);
+                    
+                    // Última tentativa: salvar dados comprimidos
+                    try {
+                        const compressedData = this.compressData(data);
+                        localStorage.setItem(this.STORAGE_KEY, JSON.stringify(compressedData));
+                        console.log('✅ Dados comprimidos salvos');
+                        return true;
+                    } catch (finalError) {
+                        console.error('❌ Erro final ao salvar:', finalError);
+                        return false;
+                    }
+                }
+            }
+            
             return false;
         }
     },
@@ -339,6 +368,117 @@ const CardsManager = {
             console.error('Erro ao salvar configurações:', error);
             return null;
         }
+    },
+    
+    // Limpar dados antigos
+    clearOldData() {
+        console.log('🧹 Limpando dados antigos do localStorage...');
+        
+        // Manter apenas dados essenciais
+        const essentialKeys = [
+            'virtual-cards-collection',
+            'virtual-card-settings',
+            'editing-card-id',
+            'virtual-card-data',
+            'creating-new-card'
+        ];
+        
+        const keysToRemove = [];
+        for (let key in localStorage) {
+            if (localStorage.hasOwnProperty(key) && !essentialKeys.includes(key)) {
+                keysToRemove.push(key);
+            }
+        }
+        
+        keysToRemove.forEach(key => {
+            localStorage.removeItem(key);
+        });
+        
+        console.log(`✅ Removidos ${keysToRemove.length} itens antigos`);
+    },
+    
+    // Comprimir dados
+    compressData(data) {
+        console.log('🗜️ Comprimindo dados dos cartões...');
+        
+        const compressed = { ...data };
+        
+        if (compressed.cards && Array.isArray(compressed.cards)) {
+            compressed.cards = compressed.cards.map(card => {
+                const compressedCard = { ...card };
+                
+                // Comprimir imagem principal se existir
+                if (compressedCard.data?.image && typeof compressedCard.data.image === 'string' && compressedCard.data.image.length > 50000) {
+                    console.log(`🖼️ Comprimindo imagem do cartão ${compressedCard.id}...`);
+                    try {
+                        compressedCard.data.image = this.compressImage(compressedCard.data.image);
+                    } catch (error) {
+                        console.warn(`⚠️ Erro ao comprimir imagem do cartão ${compressedCard.id}:`, error);
+                        compressedCard.data.image = null;
+                    }
+                }
+                
+                // Comprimir imagens das seções de destaque
+                if (compressedCard.data?.featureSections && Array.isArray(compressedCard.data.featureSections)) {
+                    compressedCard.data.featureSections = compressedCard.data.featureSections.map(section => {
+                        const compressedSection = { ...section };
+                        if (compressedSection.image && typeof compressedSection.image === 'string' && compressedSection.image.length > 50000) {
+                            try {
+                                compressedSection.image = this.compressImage(compressedSection.image);
+                            } catch (error) {
+                                console.warn('⚠️ Erro ao comprimir imagem de seção:', error);
+                                compressedSection.image = null;
+                            }
+                        }
+                        return compressedSection;
+                    });
+                }
+                
+                return compressedCard;
+            });
+        }
+        
+        console.log('✅ Dados comprimidos');
+        return compressed;
+    },
+    
+    // Comprimir imagem
+    compressImage(base64String, quality = 0.3) {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        const img = new Image();
+        
+        return new Promise((resolve) => {
+            img.onload = () => {
+                // Redimensionar mais agressivamente
+                const maxWidth = 400;
+                const maxHeight = 300;
+                
+                let { width, height } = img;
+                
+                if (width > maxWidth || height > maxHeight) {
+                    const ratio = Math.min(maxWidth / width, maxHeight / height);
+                    width *= ratio;
+                    height *= ratio;
+                }
+                
+                canvas.width = width;
+                canvas.height = height;
+                
+                ctx.drawImage(img, 0, 0, width, height);
+                
+                const compressedBase64 = canvas.toDataURL('image/jpeg', quality);
+                console.log(`📊 Imagem comprimida: ${base64String.length} -> ${compressedBase64.length} bytes`);
+                resolve(compressedBase64);
+            };
+            
+            img.onerror = () => {
+                console.warn('⚠️ Erro ao carregar imagem para compressão');
+                resolve(base64String);
+            };
+            
+            img.src = base64String;
+        });
     }
 };
 

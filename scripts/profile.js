@@ -11,20 +11,63 @@ document.addEventListener('DOMContentLoaded', () => {
 const initializeProfile = () => {
     console.log('👤 Inicializando perfil...');
     
-    // Verificar se retornou da edição de um cartão
-    checkForCardUpdates();
-    
-    loadUserInfo();
-    loadStats();
-    loadCards();
-    initializeSearch();
-    initializeFilters();
-    initializeMobileMenu();
-    initializeNavigation();
-    initializeSettings();
-    initializePageFocusListener();
-    
-    console.log('✅ Perfil inicializado');
+    try {
+        // Verificar se retornou da edição de um cartão
+        console.log('🔄 Verificando atualizações de cartões...');
+        checkForCardUpdates();
+        
+        // Fazer limpeza automática se necessário
+        console.log('🧹 Verificando limpeza automática...');
+        autoCleanupIfNeeded();
+        
+        console.log('👤 Carregando informações do usuário...');
+        loadUserInfo();
+        
+        console.log('📊 Carregando estatísticas...');
+        loadStats();
+        
+        console.log('📋 Carregando cartões...');
+        loadCards();
+        
+        console.log('🔍 Inicializando pesquisa...');
+        initializeSearch();
+        
+        console.log('🔧 Inicializando filtros...');
+        initializeFilters();
+        
+        console.log('📱 Inicializando menu mobile...');
+        initializeMobileMenu();
+        
+        console.log('🧭 Inicializando navegação...');
+        initializeNavigation();
+        
+        console.log('⚙️ Inicializando configurações...');
+        initializeSettings();
+        
+        console.log('👁️ Inicializando listener de foco...');
+        initializePageFocusListener();
+        
+        console.log('✅ Perfil inicializado com sucesso');
+    } catch (error) {
+        console.error('❌ Erro na inicialização do perfil:', error);
+        // Mostrar erro na interface
+        const container = document.getElementById('cardsContainer');
+        if (container) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-icon">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <h3 class="empty-title">Erro na inicialização</h3>
+                    <p class="empty-text">Ocorreu um erro ao inicializar o perfil.</p>
+                    <button class="btn btn-primary" onclick="location.reload()">
+                        <i class="fas fa-refresh"></i>
+                        Recarregar Página
+                    </button>
+                </div>
+            `;
+        }
+    }
 };
 
 // Listener para detectar quando a página é focada novamente
@@ -116,47 +159,107 @@ const formatNumber = (num) => {
 
 // ========== CARREGAR CARTÕES ==========
 const loadCards = (filter = null, searchQuery = null) => {
-    let cards = CardsManager.getAllCards();
+    console.log('📋 Carregando cartões...', { filter, searchQuery });
     
-    // Aplicar pesquisa
-    if (searchQuery) {
-        cards = CardsManager.searchCards(searchQuery);
+    try {
+        let cards = CardsManager.getAllCards();
+        console.log('📋 Cartões obtidos:', cards.length);
+        
+        // Aplicar pesquisa
+        if (searchQuery) {
+            cards = CardsManager.searchCards(searchQuery);
+            console.log('🔍 Após pesquisa:', cards.length);
+        }
+        
+        // Aplicar filtro
+        if (filter) {
+            cards = CardsManager.filterCards(filter);
+            console.log('🔍 Após filtro:', cards.length);
+        }
+        
+        // Renderizar
+        console.log('🎨 Renderizando cartões...');
+        renderCards(cards);
+        console.log('✅ Cartões renderizados');
+    } catch (error) {
+        console.error('❌ Erro ao carregar cartões:', error);
+        const container = document.getElementById('cardsContainer');
+        if (container) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-icon">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <h3 class="empty-title">Erro ao carregar cartões</h3>
+                    <p class="empty-text">Ocorreu um erro ao carregar os cartões. Tente recarregar a página.</p>
+                    <button class="btn btn-primary" onclick="location.reload()">
+                        <i class="fas fa-refresh"></i>
+                        Recarregar Página
+                    </button>
+                </div>
+            `;
+        }
     }
-    
-    // Aplicar filtro
-    if (filter) {
-        cards = CardsManager.filterCards(filter);
-    }
-    
-    // Renderizar
-    renderCards(cards);
 };
 
 const renderCards = (cards) => {
-    const container = document.getElementById('cardsContainer');
-    if (!container) return;
+    console.log('🎨 Renderizando cartões:', cards.length);
     
-    if (cards.length === 0) {
-        container.innerHTML = `
-            <div class="empty-state">
-                <div class="empty-icon">
-                    <i class="fas fa-id-card"></i>
-                </div>
-                <h3 class="empty-title">Nenhum cartão encontrado</h3>
-                <p class="empty-text">Comece criando seu primeiro cartão de visita digital!</p>
-                <a href="editor.html" class="btn btn-primary" onclick="createNewCard()">
-                    <i class="fas fa-plus"></i>
-                    Criar Primeiro Cartão
-                </a>
-            </div>
-        `;
+    const container = document.getElementById('cardsContainer');
+    if (!container) {
+        console.error('❌ Container de cartões não encontrado');
         return;
     }
     
-    container.innerHTML = cards.map(card => createCardHTML(card)).join('');
-    
-    // Adicionar event listeners
-    attachCardEventListeners();
+    try {
+        if (cards.length === 0) {
+            console.log('📭 Nenhum cartão encontrado, mostrando estado vazio');
+            container.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-icon">
+                        <i class="fas fa-id-card"></i>
+                    </div>
+                    <h3 class="empty-title">Nenhum cartão encontrado</h3>
+                    <p class="empty-text">Comece criando seu primeiro cartão de visita digital!</p>
+                    <a href="editor.html" class="btn btn-primary" onclick="createNewCard()">
+                        <i class="fas fa-plus"></i>
+                        Criar Primeiro Cartão
+                    </a>
+                </div>
+            `;
+            return;
+        }
+        
+        console.log('🎨 Gerando HTML dos cartões...');
+        const cardsHTML = cards.map(card => {
+            console.log('📋 Processando cartão:', card.id, card.name);
+            return createCardHTML(card);
+        }).join('');
+        
+        console.log('📝 Inserindo HTML no container...');
+        container.innerHTML = cardsHTML;
+        
+        console.log('🔗 Adicionando event listeners...');
+        // Adicionar event listeners
+        attachCardEventListeners();
+        
+        console.log('✅ Cartões renderizados com sucesso');
+    } catch (error) {
+        console.error('❌ Erro ao renderizar cartões:', error);
+        container.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-icon">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <h3 class="empty-title">Erro ao renderizar cartões</h3>
+                <p class="empty-text">Ocorreu um erro ao renderizar os cartões.</p>
+                <button class="btn btn-primary" onclick="location.reload()">
+                    <i class="fas fa-refresh"></i>
+                    Recarregar Página
+                </button>
+            </div>
+        `;
+    }
 };
 
 const createCardHTML = (card) => {
@@ -252,17 +355,73 @@ window.editCard = (cardId) => {
     if (card && card.data) {
         console.log('📋 Dados do cartão encontrados:', card);
         
-        // Salvar dados do cartão no localStorage para o editor carregar
-        localStorage.setItem('virtual-card-data', JSON.stringify(card.data));
-        localStorage.setItem('editing-card-id', cardId);
-        
-        console.log('✅ Dados salvos no localStorage para edição');
-        console.log('🔍 Verificando se editing-card-id foi salvo:', localStorage.getItem('editing-card-id'));
-        console.log('🔍 Verificando se virtual-card-data foi salvo:', localStorage.getItem('virtual-card-data') ? 'Sim' : 'Não');
-        console.log('🔄 Redirecionando para o editor...');
-        
-        // Redirecionar para o editor
-        window.location.href = 'editor.html';
+        try {
+            // Tentar salvar dados do cartão no localStorage
+            const cardDataString = JSON.stringify(card.data);
+            localStorage.setItem('virtual-card-data', cardDataString);
+            localStorage.setItem('editing-card-id', cardId);
+            
+            console.log('✅ Dados salvos no localStorage para edição');
+            console.log('🔍 Verificando se editing-card-id foi salvo:', localStorage.getItem('editing-card-id'));
+            console.log('🔍 Verificando se virtual-card-data foi salvo:', localStorage.getItem('virtual-card-data') ? 'Sim' : 'Não');
+            console.log('🔄 Redirecionando para o editor...');
+            
+            // Redirecionar para o editor
+            window.location.href = 'editor.html';
+            
+        } catch (error) {
+            console.error('❌ Erro ao salvar dados do cartão:', error);
+            
+            if (error.name === 'QuotaExceededError') {
+                console.log('🧹 localStorage cheio, tentando limpar e comprimir dados...');
+                
+                try {
+                    // Limpar dados antigos primeiro
+                    clearOldData();
+                    
+                    // Comprimir dados do cartão (sem await, usando Promise)
+                    compressCardData(card.data).then(compressedData => {
+                        // Tentar salvar dados comprimidos
+                        localStorage.setItem('virtual-card-data', JSON.stringify(compressedData));
+                        localStorage.setItem('editing-card-id', cardId);
+                        
+                        console.log('✅ Dados comprimidos salvos com sucesso');
+                        window.location.href = 'editor.html';
+                    }).catch(compressError => {
+                        console.error('❌ Erro ao comprimir dados:', compressError);
+                        // Se falhar a compressão, tentar salvar dados essenciais
+                        const essentialData = extractEssentialData(card.data);
+                        localStorage.setItem('virtual-card-data', JSON.stringify(essentialData));
+                        localStorage.setItem('editing-card-id', cardId);
+                        
+                        console.log('✅ Dados essenciais salvos (compressão falhou)');
+                        alert('⚠️ Dados grandes foram removidos para economizar espaço. Algumas imagens podem não aparecer no editor.');
+                        window.location.href = 'editor.html';
+                    });
+                    
+                } catch (retryError) {
+                    console.error('❌ Erro mesmo após limpeza e compressão:', retryError);
+                    
+                    // Última tentativa: salvar apenas dados essenciais
+                    try {
+                        const essentialData = extractEssentialData(card.data);
+                        localStorage.setItem('virtual-card-data', JSON.stringify(essentialData));
+                        localStorage.setItem('editing-card-id', cardId);
+                        
+                        console.log('✅ Dados essenciais salvos');
+                        alert('⚠️ Dados grandes foram removidos para economizar espaço. Algumas imagens podem não aparecer no editor.');
+                        window.location.href = 'editor.html';
+                        
+                    } catch (finalError) {
+                        console.error('❌ Erro final ao salvar:', finalError);
+                        alert('❌ Erro: Não foi possível carregar o cartão para edição. Tente limpar o cache do navegador.');
+                    }
+                }
+            } else {
+                console.error('❌ Erro inesperado:', error);
+                alert('❌ Erro inesperado ao carregar o cartão para edição.');
+            }
+        }
     } else {
         console.error('❌ Cartão não encontrado ou sem dados:', cardId);
         alert('Erro: Cartão não encontrado ou sem dados para editar.');
@@ -1006,6 +1165,137 @@ window.logout = () => {
     }
 };
 
+// ========== FUNÇÕES DE LIMPEZA E COMPRESSÃO ==========
+const clearOldData = () => {
+    console.log('🧹 Limpando dados antigos do localStorage...');
+    
+    // Manter apenas dados essenciais
+    const essentialKeys = [
+        'virtual-cards-collection',
+        'virtual-card-settings',
+        'editing-card-id',
+        'virtual-card-data',
+        'creating-new-card'
+    ];
+    
+    const keysToRemove = [];
+    for (let key in localStorage) {
+        if (localStorage.hasOwnProperty(key) && !essentialKeys.includes(key)) {
+            keysToRemove.push(key);
+        }
+    }
+    
+    keysToRemove.forEach(key => {
+        localStorage.removeItem(key);
+    });
+    
+    console.log(`✅ Removidos ${keysToRemove.length} itens antigos`);
+};
+
+const compressCardData = (cardData) => {
+    console.log('🗜️ Comprimindo dados do cartão...');
+    
+    return new Promise(async (resolve, reject) => {
+        try {
+            const compressed = { ...cardData };
+            
+            // Comprimir imagem principal se existir
+            if (compressed.image && typeof compressed.image === 'string' && compressed.image.length > 50000) {
+                console.log('🖼️ Comprimindo imagem principal...');
+                try {
+                    compressed.image = await compressImage(compressed.image);
+                    console.log('✅ Imagem principal comprimida');
+                } catch (error) {
+                    console.warn('⚠️ Erro ao comprimir imagem principal:', error);
+                    // Se falhar, remover a imagem
+                    compressed.image = null;
+                }
+            }
+            
+            // Comprimir imagens das seções de destaque
+            if (compressed.featureSections && Array.isArray(compressed.featureSections)) {
+                for (let i = 0; i < compressed.featureSections.length; i++) {
+                    const section = compressed.featureSections[i];
+                    if (section.image && typeof section.image === 'string' && section.image.length > 50000) {
+                        console.log(`🖼️ Comprimindo imagem da seção ${i}...`);
+                        try {
+                            compressed.featureSections[i].image = await compressImage(section.image);
+                            console.log(`✅ Imagem da seção ${i} comprimida`);
+                        } catch (error) {
+                            console.warn(`⚠️ Erro ao comprimir imagem da seção ${i}:`, error);
+                            // Se falhar, remover a imagem
+                            compressed.featureSections[i].image = null;
+                        }
+                    }
+                }
+            }
+            
+            resolve(compressed);
+        } catch (error) {
+            reject(error);
+        }
+    });
+};
+
+const compressImage = (base64String, quality = 0.3) => {
+    return new Promise((resolve) => {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        const img = new Image();
+        
+        img.onload = () => {
+            // Redimensionar mais agressivamente
+            const maxWidth = 400;
+            const maxHeight = 300;
+            
+            let { width, height } = img;
+            
+            if (width > maxWidth || height > maxHeight) {
+                const ratio = Math.min(maxWidth / width, maxHeight / height);
+                width *= ratio;
+                height *= ratio;
+            }
+            
+            canvas.width = width;
+            canvas.height = height;
+            
+            ctx.drawImage(img, 0, 0, width, height);
+            
+            const compressedBase64 = canvas.toDataURL('image/jpeg', quality);
+            console.log(`📊 Imagem comprimida: ${base64String.length} -> ${compressedBase64.length} bytes`);
+            resolve(compressedBase64);
+        };
+        
+        img.onerror = () => {
+            console.warn('⚠️ Erro ao carregar imagem para compressão');
+            resolve(base64String);
+        };
+        
+        img.src = base64String;
+    });
+};
+
+const extractEssentialData = (cardData) => {
+    console.log('📋 Extraindo dados essenciais...');
+    
+    // Manter apenas dados essenciais, removendo imagens
+    const essentialData = {
+        personalInfo: cardData.personalInfo || {},
+        design: cardData.design || {},
+        links: cardData.links || [],
+        featureSections: cardData.featureSections ? cardData.featureSections.map(section => ({
+            title: section.title,
+            description: section.description,
+            // Remover imagem
+            image: null
+        })) : [],
+        showSaveContactButton: cardData.showSaveContactButton !== false
+    };
+    
+    console.log('✅ Dados essenciais extraídos (imagens removidas)');
+    return essentialData;
+};
+
 // ========== FUNÇÃO DE REFRESH ==========
 window.refreshProfile = () => {
     console.log('🔄 Atualizando perfil...');
@@ -1094,6 +1384,48 @@ window.clearCache = () => {
         if (typeof window.showCustomNotification === 'function') {
             window.showCustomNotification('Erro ao limpar cache', 'error', 3000);
         }
+    }
+};
+
+// ========== FUNÇÃO DE LIMPEZA AUTOMÁTICA ==========
+const autoCleanupIfNeeded = () => {
+    try {
+        // Verificar tamanho atual do localStorage
+        let totalSize = 0;
+        for (let key in localStorage) {
+            if (localStorage.hasOwnProperty(key)) {
+                totalSize += localStorage[key].length;
+            }
+        }
+        
+        // Se estiver usando mais de 3MB, fazer limpeza automática
+        const maxSize = 3 * 1024 * 1024; // 3MB
+        if (totalSize > maxSize) {
+            console.log('🧹 localStorage muito cheio, fazendo limpeza automática...');
+            
+            // Limpar dados antigos mas manter cartões
+            clearOldData();
+            
+            // Verificar se ainda está cheio
+            let newSize = 0;
+            for (let key in localStorage) {
+                if (localStorage.hasOwnProperty(key)) {
+                    newSize += localStorage[key].length;
+                }
+            }
+            
+            console.log(`📊 Tamanho antes: ${(totalSize / 1024 / 1024).toFixed(2)}MB, depois: ${(newSize / 1024 / 1024).toFixed(2)}MB`);
+            
+            // Se ainda estiver cheio, mostrar aviso
+            if (newSize > maxSize) {
+                console.warn('⚠️ localStorage ainda muito cheio após limpeza');
+                if (typeof window.showCustomNotification === 'function') {
+                    window.showCustomNotification('⚠️ Armazenamento cheio. Considere remover cartões antigos.', 'warning', 5000);
+                }
+            }
+        }
+    } catch (error) {
+        console.error('❌ Erro na limpeza automática:', error);
     }
 };
 
