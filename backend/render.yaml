@@ -1,0 +1,24 @@
+services:
+  - type: web
+    name: cartao-visita-virtual-api
+    env: node
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 5000
+      - key: MONGO_URI
+        sync: false  # Configure no dashboard do Render
+      - key: JWT_SECRET
+        sync: false  # Configure no dashboard do Render
+      - key: JWT_EXPIRES_IN
+        value: 30d
+      - key: FRONTEND_URL
+        sync: false  # Configure no dashboard do Render
+      - key: LOG_LEVEL
+        value: info
+    healthCheckPath: /health
+
+

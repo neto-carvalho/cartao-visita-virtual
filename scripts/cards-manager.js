@@ -479,6 +479,17 @@ const CardsManager = {
             
             img.src = base64String;
         });
+    },
+    
+    // Limpar todos os dados
+    clearAll() {
+        console.log('🧹 Limpando todos os dados do localStorage...');
+        try {
+            localStorage.removeItem(this.STORAGE_KEY);
+            console.log('✅ Dados limpos com sucesso');
+        } catch (error) {
+            console.error('❌ Erro ao limpar dados:', error);
+        }
     }
 };
 

@@ -619,6 +619,26 @@ const generateCard = async () => {
 const saveCard = async () => {
     console.log('💾 Iniciando processo de salvamento...');
     
+    // Verificar se o usuário está autenticado
+    const isAuthenticated = typeof apiService !== 'undefined' && apiService.isAuthenticated();
+    
+    if (!isAuthenticated) {
+        console.log('⚠️ Usuário não autenticado, redirecionando para login...');
+        
+        // Mostrar modal para fazer login
+        const needsLogin = await showLoginRequiredModal();
+        
+        if (needsLogin) {
+            // Salvar dados temporariamente para depois do login
+            localStorage.setItem('virtual-card-draft', JSON.stringify(window.appState));
+            
+            // Redirecionar para login
+            window.location.href = 'login.html';
+        }
+        
+        return;
+    }
+    
     // Verificar se está editando um cartão existente
     const editingCardId = localStorage.getItem('editing-card-id');
     console.log('🔍 Verificando modo de edição. editing-card-id:', editingCardId);
@@ -626,101 +646,114 @@ const saveCard = async () => {
     if (editingCardId) {
         console.log('📝 Atualizando cartão existente:', editingCardId);
         
-        // Atualizar cartão existente
-        if (window.CardsManager) {
-            // Obter o cartão atual para manter o nome se não for alterado
-            const currentCard = window.CardsManager.getCardById(editingCardId);
-            const defaultName = currentCard ? currentCard.name : (window.appState.personalInfo.fullName || 'Meu Cartão');
+        // Obter o cartão atual para manter o nome se não for alterado
+        const currentCard = window.CardsManager?.getCardById(editingCardId);
+        const defaultName = currentCard ? currentCard.name : (window.appState.personalInfo.fullName || 'Meu Cartão');
+        
+        const cardName = await window.showCardNameModal(defaultName);
+        
+        if (cardName) {
+            console.log('✅ Atualizando cartão na API com nome:', cardName);
             
-            const cardName = await window.showCardNameModal(defaultName);
-            
-            if (cardName) {
-                console.log('✅ Salvando cartão com nome:', cardName);
-                
-                // Atualizar o cartão
-                const updatedCard = window.CardsManager.updateCard(editingCardId, {
+            try {
+                // Preparar dados para API
+                const cardData = {
                     name: cardName,
-                    data: { ...window.appState }, // Criar uma cópia dos dados
-                    updatedAt: new Date().toISOString()
-                });
+                    jobTitle: window.appState.personalInfo?.jobTitle || '',
+                    description: window.appState.personalInfo?.description || '',
+                    email: window.appState.personalInfo?.email || '',
+                    phone: window.appState.personalInfo?.phone || '',
+                    image: window.appState.image || null,
+                    color: window.appState.design?.primaryColor || '#00BFFF',
+                    theme: window.appState.design?.theme || 'modern',
+                    links: (window.appState.links || []).map(link => ({
+                        title: link.label,
+                        url: link.url,
+                        type: link.type || 'custom'
+                    }))
+                };
                 
-                if (updatedCard) {
-                    console.log('✅ Cartão atualizado com sucesso:', updatedCard);
-                    
-                    // Marcar que houve uma atualização
-                    localStorage.setItem('card-updated', 'true');
-                    
-                    // Mostrar notificação de sucesso
-                    window.showCustomNotification('Cartão atualizado e salvo no seu perfil!', 'success', 3000);
-                    
-                    // Limpar dados temporários APÓS mostrar a notificação
-                    setTimeout(() => {
-                        localStorage.removeItem('editing-card-id');
-                        localStorage.removeItem('virtual-card-data');
-                        window.location.href = 'profile.html';
-                    }, 2000);
-                    return;
-                } else {
-                    console.error('❌ Erro ao atualizar cartão');
-                    window.showCustomNotification('Erro ao atualizar cartão. Tente novamente.', 'error', 3000);
-                    return;
-                }
+                // Atualizar via API
+                const updatedCard = await apiService.updateCard(editingCardId, cardData);
+                
+                console.log('✅ Cartão atualizado na API:', updatedCard);
+                
+                // Marcar que houve uma atualização
+                localStorage.setItem('card-updated', 'true');
+                
+                // Mostrar notificação de sucesso
+                window.showCustomNotification('Cartão atualizado e salvo no seu perfil!', 'success', 3000);
+                
+                // Limpar dados temporários APÓS mostrar a notificação
+                setTimeout(() => {
+                    localStorage.removeItem('editing-card-id');
+                    localStorage.removeItem('virtual-card-data');
+                    window.location.href = 'profile.html';
+                }, 2000);
+                return;
+            } catch (error) {
+                console.error('❌ Erro ao atualizar cartão na API:', error);
+                window.showCustomNotification('Erro ao atualizar cartão. Tente novamente.', 'error', 3000);
+                return;
             }
-        } else {
-            console.error('❌ CardsManager não disponível');
-            window.showCustomNotification('Erro: Sistema de cartões não disponível.', 'error', 3000);
-            return;
         }
     }
     
     // Salvar novo cartão
     console.log('🆕 Criando novo cartão...');
     
-    if (window.CardsManager) {
-        const defaultName = window.appState.personalInfo.fullName || 'Meu Cartão';
-        const cardName = await window.showCardNameModal(defaultName);
+    const defaultName = window.appState.personalInfo?.fullName || 'Meu Cartão';
+    const cardName = await window.showCardNameModal(defaultName);
+    
+    if (cardName) {
+        console.log('✅ Criando cartão na API com nome:', cardName);
         
-        if (cardName) {
-            console.log('✅ Criando cartão com nome:', cardName);
-            
-            const newCard = window.CardsManager.createCard({
+        try {
+            // Preparar dados para API
+            const cardData = {
                 name: cardName,
-                data: { ...window.appState } // Criar uma cópia dos dados
-            });
+                jobTitle: window.appState.personalInfo?.jobTitle || '',
+                description: window.appState.personalInfo?.description || '',
+                email: window.appState.personalInfo?.email || '',
+                phone: window.appState.personalInfo?.phone || '',
+                image: window.appState.image || null,
+                color: window.appState.design?.primaryColor || '#00BFFF',
+                theme: window.appState.design?.theme || 'modern',
+                links: (window.appState.links || []).map(link => ({
+                    title: link.label,
+                    url: link.url,
+                    type: link.type || 'custom'
+                }))
+            };
             
-            if (newCard) {
-                console.log('✅ Novo cartão criado com sucesso:', newCard);
+            // Criar via API
+            const newCard = await apiService.createCard(cardData);
+            
+            console.log('✅ Novo cartão criado na API:', newCard);
+            
+            // Marcar que houve uma atualização para forçar refresh no perfil
+            localStorage.setItem('card-updated', 'true');
+            
+            // Mostrar notificação de sucesso
+            window.showCustomNotification('Cartão salvo no seu perfil com sucesso!', 'success', 3000);
+            
+            // Perguntar se deseja ir para o perfil
+            setTimeout(async () => {
+                const goToProfile = await window.showConfirmModal(
+                    '🎉 Cartão Salvo!',
+                    'Seu cartão foi salvo no seu perfil. Deseja visualizar agora?',
+                    'Sim, ver perfil',
+                    'Continuar editando'
+                );
                 
-                // Marcar que houve uma atualização para forçar refresh no perfil
-                localStorage.setItem('card-updated', 'true');
-                
-                // Mostrar notificação de sucesso
-                window.showCustomNotification('Cartão salvo no seu perfil com sucesso!', 'success', 3000);
-                
-                // Perguntar se deseja ir para o perfil
-                setTimeout(async () => {
-                    const goToProfile = await window.showConfirmModal(
-                        '🎉 Cartão Salvo!',
-                        'Seu cartão foi salvo no seu perfil. Deseja visualizar agora?',
-                        'Sim, ver perfil',
-                        'Continuar editando'
-                    );
-                    
-                    if (goToProfile) {
-                        window.location.href = 'profile.html';
-                    }
-                }, 1000);
-            } else {
-                console.error('❌ Erro ao criar cartão');
-                window.showCustomNotification('Erro ao criar cartão. Tente novamente.', 'error', 3000);
-            }
+                if (goToProfile) {
+                    window.location.href = 'profile.html';
+                }
+            }, 1000);
+        } catch (error) {
+            console.error('❌ Erro ao criar cartão na API:', error);
+            window.showCustomNotification('Erro ao criar cartão. Tente novamente.', 'error', 3000);
         }
-    } else {
-        console.warn('⚠️ CardsManager não disponível, usando fallback');
-        // Fallback: salvar apenas no localStorage
-        await saveData();
-        
-        window.showCustomNotification('Cartão salvo com sucesso!', 'success', 3000);
     }
 };
 
@@ -790,6 +823,166 @@ const importCardData = async (jsonData) => {
     }
 };
 
+// ==========================================================================
+// MODAL DE LOGIN NECESSÁRIO
+// ==========================================================================
+
+const showLoginRequiredModal = () => {
+    return new Promise((resolve) => {
+        // Criar modal
+        const modal = document.createElement('div');
+        modal.className = 'login-required-modal';
+        modal.innerHTML = `
+            <div class="login-modal-overlay"></div>
+            <div class="login-modal-content">
+                <div class="login-modal-icon">
+                    <i class="fas fa-lock"></i>
+                </div>
+                <h3>Login Necessário</h3>
+                <p>Você precisa fazer login para salvar seus cartões no perfil.</p>
+                <div class="login-modal-buttons">
+                    <button class="btn-login-cancel" onclick="closeLoginModal()">
+                        <i class="fas fa-times"></i>
+                        Cancelar
+                    </button>
+                    <button class="btn-login-confirm" onclick="confirmLogin()">
+                        <i class="fas fa-sign-in-alt"></i>
+                        Fazer Login
+                    </button>
+                </div>
+            </div>
+        `;
+        
+        // Estilos inline
+        modal.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        `;
+        
+        const overlay = modal.querySelector('.login-modal-overlay');
+        overlay.style.cssText = `
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+        `;
+        
+        const content = modal.querySelector('.login-modal-content');
+        content.style.cssText = `
+            position: relative;
+            background: white;
+            padding: 2rem;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+            animation: modalSlideIn 0.3s ease-out;
+        `;
+        
+        const icon = modal.querySelector('.login-modal-icon');
+        icon.style.cssText = `
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+            font-size: 24px;
+            color: white;
+        `;
+        
+        const buttons = modal.querySelector('.login-modal-buttons');
+        buttons.style.cssText = `
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        `;
+        
+        const cancelBtn = modal.querySelector('.btn-login-cancel');
+        cancelBtn.style.cssText = `
+            flex: 1;
+            padding: 12px 24px;
+            border: 2px solid #e5e7eb;
+            background: white;
+            color: #6b7280;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        `;
+        
+        const confirmBtn = modal.querySelector('.btn-login-confirm');
+        confirmBtn.style.cssText = `
+            flex: 1;
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        `;
+        
+        // Animações
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes modalSlideIn {
+                from {
+                    opacity: 0;
+                    transform: translateY(-20px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+            .btn-login-cancel:hover {
+                background: #f9fafb;
+                border-color: #d1d5db;
+            }
+            .btn-login-confirm:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+            }
+        `;
+        document.head.appendChild(style);
+        
+        document.body.appendChild(modal);
+        
+        // Funções de callback
+        window.closeLoginModal = () => {
+            modal.remove();
+            document.head.removeChild(style);
+            resolve(false);
+        };
+        
+        window.confirmLogin = () => {
+            modal.remove();
+            document.head.removeChild(style);
+            resolve(true);
+        };
+        
+        // Fechar ao clicar no overlay
+        overlay.addEventListener('click', () => {
+            window.closeLoginModal();
+        });
+    });
+};
+
 // Exportar funções globais
 window.updateLink = updateLink;
 window.removeLink = removeLink;
@@ -797,3 +990,4 @@ window.removeImage = removeImage;
 // window.generateQRCode está em qr-generator.js
 window.exportCardData = exportCardData;
 window.importCardData = importCardData;
+window.showLoginRequiredModal = showLoginRequiredModal;

@@ -8,8 +8,27 @@ document.addEventListener('DOMContentLoaded', () => {
     initializeProfile();
 });
 
-const initializeProfile = () => {
+const initializeProfile = async () => {
     console.log('👤 Inicializando perfil...');
+    
+    // Verificar se o usuário está autenticado
+    const isAuthenticated = typeof apiService !== 'undefined' && apiService.isAuthenticated();
+    
+    if (!isAuthenticated) {
+        console.log('⚠️ Usuário não autenticado, redirecionando para login...');
+        alert('Você precisa fazer login para acessar seu perfil.');
+        window.location.href = 'login.html';
+        return;
+    }
+    
+    // Limpar dados antigos do localStorage que possam estar sobrando
+    console.log('🧹 Limpando dados antigos do localStorage do perfil...');
+    const hasEditingCardId = localStorage.getItem('editing-card-id');
+    if (!hasEditingCardId) {
+        // Se não há cartão sendo editado, limpar virtual-card-data
+        localStorage.removeItem('virtual-card-data');
+        console.log('✅ Dados antigos de edição removidos');
+    }
     
     try {
         // Verificar se retornou da edição de um cartão
@@ -27,7 +46,7 @@ const initializeProfile = () => {
         loadStats();
         
         console.log('📋 Carregando cartões...');
-        loadCards();
+        await loadCards();
         
         console.log('🔍 Inicializando pesquisa...');
         initializeSearch();
@@ -96,16 +115,44 @@ const checkForCardUpdates = () => {
         localStorage.removeItem('card-updated');
         
         // Forçar recarregamento dos dados
-        setTimeout(() => {
-            loadStats();
-            loadCards();
+        setTimeout(async () => {
+            try {
+                loadStats();
+                await loadCards();
+            } catch (error) {
+                console.error('❌ Erro ao recarregar dados:', error);
+            }
         }, 500);
     }
 };
 
 // ========== CARREGAR INFORMAÇÕES DO USUÁRIO ==========
 const loadUserInfo = () => {
-    const user = CardsManager.getUser();
+    let user = CardsManager.getUser();
+    
+    // Verificar se há usuário autenticado no apiService
+    if (typeof apiService !== 'undefined' && apiService.isAuthenticated()) {
+        const authUser = apiService.getCurrentUser();
+        if (authUser) {
+            console.log('🔄 Sincronizando usuário do login:', authUser.name);
+            // Salvar no CardsManager
+            CardsManager.saveUser({
+                id: authUser.id || `user_${Date.now()}`,
+                name: authUser.name,
+                email: authUser.email,
+                avatar: null,
+                createdAt: authUser.createdAt || new Date().toISOString()
+            });
+            // Usar o usuário autenticado
+            user = {
+                id: authUser.id || `user_${Date.now()}`,
+                name: authUser.name,
+                email: authUser.email,
+                avatar: null
+            };
+            console.log('✅ Usuário sincronizado:', user.name, user.email);
+        }
+    }
     
     // Atualizar avatar
     const avatarEl = document.querySelector('.user-avatar');
@@ -158,22 +205,67 @@ const formatNumber = (num) => {
 };
 
 // ========== CARREGAR CARTÕES ==========
-const loadCards = (filter = null, searchQuery = null) => {
+const loadCards = async (filter = null, searchQuery = null) => {
     console.log('📋 Carregando cartões...', { filter, searchQuery });
     
     try {
-        let cards = CardsManager.getAllCards();
-        console.log('📋 Cartões obtidos:', cards.length);
+        // Verificar se apiService está disponível
+        if (typeof apiService === 'undefined' || !apiService.isAuthenticated()) {
+            console.warn('⚠️ API não disponível ou usuário não autenticado');
+            renderCards([]);
+            return;
+        }
+        
+        // Carregar cartões da API
+        console.log('🌐 Buscando cartões na API...');
+        let cards = await apiService.getCards();
+        console.log('📋 Cartões obtidos da API:', cards.length);
+        
+        // Converter para o formato esperado pelo CardsManager
+        cards = cards.map(card => ({
+            id: card._id || card.id,
+            name: card.name,
+            data: {
+                personalInfo: {
+                    fullName: card.name,
+                    jobTitle: card.jobTitle || '',
+                    description: card.description || '',
+                    email: card.email || '',
+                    phone: card.phone || ''
+                },
+                image: card.image || null,
+                design: {
+                    primaryColor: card.color || '#00BFFF',
+                    theme: card.theme || 'modern'
+                },
+                links: (card.links || []).map(link => ({
+                    label: link.title,
+                    url: link.url,
+                    type: link.type || 'custom'
+                }))
+            },
+            isActive: card.isActive,
+            isFavorite: false,
+            createdAt: card.createdAt,
+            updatedAt: card.updatedAt,
+            views: card.views || 0,
+            shares: card.shares || 0
+        }));
         
         // Aplicar pesquisa
         if (searchQuery) {
-            cards = CardsManager.searchCards(searchQuery);
+            cards = cards.filter(card => 
+                card.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                (card.data.personalInfo?.description || '').toLowerCase().includes(searchQuery.toLowerCase())
+            );
             console.log('🔍 Após pesquisa:', cards.length);
         }
         
         // Aplicar filtro
         if (filter) {
-            cards = CardsManager.filterCards(filter);
+            if (filter === 'favorites') {
+                cards = cards.filter(card => card.isFavorite);
+            }
             console.log('🔍 Após filtro:', cards.length);
         }
         
@@ -348,26 +440,93 @@ window.viewCard = (cardId) => {
     window.open(`view-card.html?id=${cardId}`, '_blank');
 };
 
-window.editCard = (cardId) => {
+window.editCard = async (cardId) => {
     console.log('✏️ Editar cartão:', cardId);
-    const card = CardsManager.getCardById(cardId);
     
-    if (card && card.data) {
-        console.log('📋 Dados do cartão encontrados:', card);
+    try {
+        // Limpar dados antigos do localStorage antes de carregar
+        console.log('🧹 Limpando dados antigos do localStorage...');
+        localStorage.removeItem('virtual-card-data');
+        localStorage.removeItem('editing-card-id');
         
-        try {
-            // Tentar salvar dados do cartão no localStorage
-            const cardDataString = JSON.stringify(card.data);
-            localStorage.setItem('virtual-card-data', cardDataString);
-            localStorage.setItem('editing-card-id', cardId);
+        // Buscar cartão da API
+        const cardFromAPI = await apiService.getCard(cardId);
+        console.log('📋 Dados do cartão encontrados na API:', cardFromAPI);
+        
+        // Converter para o formato esperado
+        const card = {
+            id: cardFromAPI._id,
+            name: cardFromAPI.name,
+            data: {
+                personalInfo: {
+                    fullName: cardFromAPI.name,
+                    jobTitle: cardFromAPI.jobTitle || '',
+                    description: cardFromAPI.description || '',
+                    email: cardFromAPI.email || '',
+                    phone: cardFromAPI.phone || ''
+                },
+                image: cardFromAPI.image || null,
+                design: {
+                    primaryColor: cardFromAPI.color || '#00BFFF',
+                    theme: cardFromAPI.theme || 'modern'
+                },
+                links: (cardFromAPI.links || []).map(link => ({
+                    label: link.title,
+                    url: link.url,
+                    type: link.type || 'custom'
+                }))
+            }
+        };
+        
+        if (card && card.data) {
+            console.log('📋 Dados convertidos:', card);
+            console.log('📋 fullName:', card.data.personalInfo.fullName);
+            console.log('📋 jobTitle:', card.data.personalInfo.jobTitle);
             
-            console.log('✅ Dados salvos no localStorage para edição');
-            console.log('🔍 Verificando se editing-card-id foi salvo:', localStorage.getItem('editing-card-id'));
-            console.log('🔍 Verificando se virtual-card-data foi salvo:', localStorage.getItem('virtual-card-data') ? 'Sim' : 'Não');
-            console.log('🔄 Redirecionando para o editor...');
-            
-            // Redirecionar para o editor
-            window.location.href = 'editor.html';
+            try {
+                // Tentar salvar dados do cartão no localStorage
+                const cardDataString = JSON.stringify(card.data);
+                console.log('📋 String a ser salva:', cardDataString.substring(0, 200));
+                
+                localStorage.setItem('virtual-card-data', cardDataString);
+                localStorage.setItem('editing-card-id', cardId);
+                
+                console.log('✅ Dados salvos no localStorage para edição');
+                console.log('🔍 Verificando se editing-card-id foi salvo:', localStorage.getItem('editing-card-id'));
+                console.log('🔍 Verificando se virtual-card-data foi salvo:', localStorage.getItem('virtual-card-data') ? 'Sim' : 'Não');
+                
+                // Verificar o que foi realmente salvo
+                const savedData = localStorage.getItem('virtual-card-data');
+                const parsedSaved = JSON.parse(savedData);
+                console.log('📋 Dados salvos recuperados:', parsedSaved);
+                console.log('📋 fullName salvo:', parsedSaved.personalInfo?.fullName);
+                console.log('📋 Card ID que será editado:', cardId);
+                console.log('📋 Card Name:', cardFromAPI.name);
+                
+                // Aguardar um pouco para garantir que o localStorage foi atualizado
+                console.log('⏳ Aguardando localStorage ser atualizado...');
+                await new Promise(resolve => setTimeout(resolve, 100));
+                
+                // Verificar novamente após o delay
+                const finalCheck = localStorage.getItem('virtual-card-data');
+                const finalParsed = JSON.parse(finalCheck);
+                console.log('🔍 Verificação final - fullName:', finalParsed.personalInfo?.fullName);
+                
+                // Forçar atualização do localStorage
+                localStorage.setItem('virtual-card-data', JSON.stringify(card.data));
+                localStorage.setItem('editing-card-id', cardId);
+                
+                console.log('🔄 Redirecionando para o editor...');
+                
+                // Forçar atualização imediatamente antes do redirecionamento
+                localStorage.setItem('virtual-card-data', JSON.stringify(card.data));
+                localStorage.setItem('editing-card-id', cardId);
+                
+                // Aguardar mais um pouco para garantir
+                await new Promise(resolve => setTimeout(resolve, 50));
+                
+                // Redirecionar para o editor
+                window.location.href = 'editor.html' + '?t=' + Date.now();
             
         } catch (error) {
             console.error('❌ Erro ao salvar dados do cartão:', error);
@@ -421,38 +580,52 @@ window.editCard = (cardId) => {
                 console.error('❌ Erro inesperado:', error);
                 alert('❌ Erro inesperado ao carregar o cartão para edição.');
             }
+            }
+        } else {
+            console.error('❌ Cartão não encontrado ou sem dados:', cardId);
+            alert('Erro: Cartão não encontrado ou sem dados para editar.');
         }
-    } else {
-        console.error('❌ Cartão não encontrado ou sem dados:', cardId);
-        alert('Erro: Cartão não encontrado ou sem dados para editar.');
+    } catch (error) {
+        console.error('❌ Erro ao buscar cartão da API:', error);
+        alert('Erro ao carregar cartão para edição. Tente novamente.');
     }
 };
 
-window.shareCard = (cardId) => {
+window.shareCard = async (cardId) => {
     console.log('🔗 Compartilhar cartão:', cardId);
-    CardsManager.incrementShares(cardId);
-    if (typeof window.openShareModal === 'function') {
-        window.openShareModal(cardId);
-    } else {
-        alert('Modal de compartilhamento será aberto aqui!');
+    try {
+        // Nota: incrementar shares no backend será implementado depois
+        if (typeof window.openShareModal === 'function') {
+            window.openShareModal(cardId);
+        } else {
+            alert('Modal de compartilhamento será aberto aqui!');
+        }
+    } catch (error) {
+        console.error('❌ Erro ao compartilhar:', error);
     }
 };
 
-window.toggleFavorite = (cardId) => {
-    const card = CardsManager.toggleFavorite(cardId);
-    if (card) {
-        console.log(card.isFavorite ? '⭐ Favoritado' : '☆ Desfavoritado');
-        loadCards();
+window.toggleFavorite = async (cardId) => {
+    try {
+        // Nota: favoritar será implementado no backend depois
+        console.log('⭐ Toggle favorito:', cardId);
+        // Por enquanto, apenas recarregar
+        await loadCards();
         loadStats();
+    } catch (error) {
+        console.error('❌ Erro ao favoritar:', error);
     }
 };
 
-window.toggleActive = (cardId) => {
-    const card = CardsManager.toggleActive(cardId);
-    if (card) {
-        console.log(card.isActive ? '✅ Ativado' : '⏸️ Desativado');
-        loadCards();
+window.toggleActive = async (cardId) => {
+    try {
+        // Nota: ativar/desativar será implementado no backend depois
+        console.log('✅ Toggle ativo:', cardId);
+        // Por enquanto, apenas recarregar
+        await loadCards();
         loadStats();
+    } catch (error) {
+        console.error('❌ Erro ao alterar status:', error);
     }
 };
 
@@ -469,26 +642,40 @@ window.openCardMenu = (cardId, event) => {
     showContextMenu(event, options);
 };
 
-const duplicateCard = (cardId) => {
+const duplicateCard = async (cardId) => {
     const newCard = CardsManager.duplicateCard(cardId);
     if (newCard) {
         console.log('📋 Cartão duplicado');
-        loadCards();
+        await loadCards();
         loadStats();
         alert('Cartão duplicado com sucesso!');
     }
 };
 
-const deleteCard = (cardId) => {
-    const card = CardsManager.getCardById(cardId);
-    if (!card) return;
-    
-    const confirmed = confirm(`Tem certeza que deseja deletar "${card.name}"?\n\nEsta ação não pode ser desfeita.`);
-    if (confirmed) {
-        CardsManager.deleteCard(cardId);
-        console.log('🗑️ Cartão deletado');
-        loadCards();
-        loadStats();
+const deleteCard = async (cardId) => {
+    try {
+        // Buscar cartão da API para obter o nome
+        const card = await apiService.getCard(cardId);
+        
+        const confirmed = confirm(`Tem certeza que deseja deletar "${card.name}"?\n\nEsta ação não pode ser desfeita.`);
+        
+        if (confirmed) {
+            console.log('🗑️ Deletando cartão via API...');
+            await apiService.deleteCard(cardId);
+            console.log('🗑️ Cartão deletado com sucesso');
+            
+            // Atualizar interface
+            await loadCards();
+            loadStats();
+            
+            // Mostrar notificação
+            if (typeof window.showCustomNotification === 'function') {
+                window.showCustomNotification('Cartão deletado com sucesso!', 'success', 3000);
+            }
+        }
+    } catch (error) {
+        console.error('❌ Erro ao deletar cartão:', error);
+        alert('Erro ao deletar cartão. Tente novamente.');
     }
 };
 
@@ -710,7 +897,7 @@ const initializeNavigation = () => {
     });
 };
 
-const navigateToSection = (sectionName) => {
+const navigateToSection = async (sectionName) => {
     // Esconder todas as seções
     const sections = document.querySelectorAll('.content-section');
     sections.forEach(section => section.classList.remove('active'));
@@ -724,10 +911,10 @@ const navigateToSection = (sectionName) => {
         switch(sectionName) {
             case 'dashboard':
                 loadStats();
-                loadCards();
+                await loadCards();
                 break;
             case 'my-cards':
-                loadMyCards();
+                await loadMyCards();
                 break;
             case 'statistics':
                 loadStatistics();
@@ -749,16 +936,64 @@ const updateActiveNavItem = (activeItem) => {
 };
 
 // ========== SEÇÃO MEUS CARTÕES ==========
-const loadMyCards = () => {
+const loadMyCards = async () => {
     const container = document.getElementById('myCardsContainer');
     if (!container) return;
     
-    const cards = CardsManager.getAllCards();
-    renderMyCards(cards);
-    
-    // Inicializar pesquisa e filtros para esta seção
-    initializeMyCardsSearch();
-    initializeMyCardsFilters();
+    try {
+        // Buscar cartões da API
+        let cards = await apiService.getCards();
+        
+        // Converter para o formato esperado
+        cards = cards.map(card => ({
+            id: card._id || card.id,
+            name: card.name,
+            data: {
+                personalInfo: {
+                    fullName: card.name,
+                    jobTitle: card.jobTitle || '',
+                    description: card.description || '',
+                    email: card.email || '',
+                    phone: card.phone || ''
+                },
+                image: card.image || null,
+                design: {
+                    primaryColor: card.color || '#00BFFF',
+                    theme: card.theme || 'modern'
+                },
+                links: (card.links || []).map(link => ({
+                    label: link.title,
+                    url: link.url,
+                    type: link.type || 'custom'
+                }))
+            },
+            isActive: card.isActive,
+            isFavorite: false,
+            createdAt: card.createdAt,
+            updatedAt: card.updatedAt
+        }));
+        
+        renderMyCards(cards);
+        
+        // Inicializar pesquisa e filtros para esta seção
+        initializeMyCardsSearch();
+        initializeMyCardsFilters();
+    } catch (error) {
+        console.error('❌ Erro ao carregar cartões:', error);
+        container.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-icon">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <h3 class="empty-title">Erro ao carregar cartões</h3>
+                <p class="empty-text">Não foi possível carregar os cartões. Tente recarregar a página.</p>
+                <button class="btn btn-primary" onclick="location.reload()">
+                    <i class="fas fa-refresh"></i>
+                    Recarregar Página
+                </button>
+            </div>
+        `;
+    }
 };
 
 const renderMyCards = (cards) => {
@@ -1152,17 +1387,182 @@ window.deleteAccount = () => {
 
 // ========== FUNÇÃO DE LOGOUT ==========
 window.logout = () => {
-    const confirmed = confirm('Tem certeza que deseja sair?');
-    if (confirmed) {
-        // Limpar dados temporários mas manter cartões
-        localStorage.removeItem('virtual-card-temp');
-        localStorage.removeItem('virtual-card-draft');
-        localStorage.removeItem('virtual-card-data');
-        localStorage.removeItem('editing-card-id');
+    // Criar modal de logout
+    const modal = document.createElement('div');
+    modal.className = 'logout-modal';
+    modal.innerHTML = `
+        <div class="logout-modal-overlay"></div>
+        <div class="logout-modal-content">
+            <div class="logout-icon">
+                <i class="fas fa-sign-out-alt"></i>
+            </div>
+            <h3>Confirmar Logout</h3>
+            <p>Tem certeza que deseja sair da sua conta?</p>
+            <div class="logout-modal-buttons">
+                <button class="btn-logout-cancel" onclick="closeLogoutModal()">
+                    <i class="fas fa-times"></i>
+                    Cancelar
+                </button>
+                <button class="btn-logout-confirm" onclick="confirmLogout()">
+                    <i class="fas fa-sign-out-alt"></i>
+                    Sim, Sair
+                </button>
+            </div>
+        </div>
+    `;
+    
+    // Adicionar estilos inline
+    modal.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 10000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    `;
+    
+    const overlay = modal.querySelector('.logout-modal-overlay');
+    overlay.style.cssText = `
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(5px);
+    `;
+    
+    const content = modal.querySelector('.logout-modal-content');
+    content.style.cssText = `
+        position: relative;
+        background: white;
+        padding: 2rem;
+        border-radius: 20px;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        max-width: 400px;
+        width: 90%;
+        text-align: center;
+        animation: modalSlideIn 0.3s ease-out;
+    `;
+    
+    const icon = modal.querySelector('.logout-icon');
+    icon.style.cssText = `
+        width: 60px;
+        height: 60px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1.5rem;
+        font-size: 24px;
+        color: white;
+    `;
+    
+    const buttons = modal.querySelector('.logout-modal-buttons');
+    buttons.style.cssText = `
+        display: flex;
+        gap: 1rem;
+        margin-top: 1.5rem;
+    `;
+    
+    const cancelBtn = modal.querySelector('.btn-logout-cancel');
+    cancelBtn.style.cssText = `
+        flex: 1;
+        padding: 12px 24px;
+        border: 2px solid #e5e7eb;
+        background: white;
+        color: #6b7280;
+        border-radius: 10px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+    `;
+    
+    const confirmBtn = modal.querySelector('.btn-logout-confirm');
+    confirmBtn.style.cssText = `
+        flex: 1;
+        padding: 12px 24px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        border-radius: 10px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+    `;
+    
+    // Adicionar animação
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
         
-        console.log('👋 Logout realizado');
-        window.location.href = 'index.html';
+        .btn-logout-cancel:hover {
+            background: #f9fafb;
+            border-color: #d1d5db;
+        }
+        
+        .btn-logout-confirm:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+        }
+    `;
+    document.head.appendChild(style);
+    
+    document.body.appendChild(modal);
+    
+    // Salvar referência global do modal
+    window.currentLogoutModal = modal;
+    
+    // Fechar ao clicar no overlay
+    overlay.addEventListener('click', closeLogoutModal);
+};
+
+window.closeLogoutModal = () => {
+    if (window.currentLogoutModal) {
+        window.currentLogoutModal.remove();
+        window.currentLogoutModal = null;
     }
+};
+
+window.confirmLogout = () => {
+    console.log('👋 Realizando logout...');
+    
+    // Usar apiService se disponível
+    if (typeof apiService !== 'undefined') {
+        apiService.logout();
+        console.log('✅ Logout via apiService realizado');
+    }
+    
+    // Limpar todos os dados de autenticação
+    localStorage.removeItem('auth_token');
+    localStorage.removeItem('user');
+    localStorage.removeItem('virtual-card-temp');
+    localStorage.removeItem('virtual-card-draft');
+    localStorage.removeItem('virtual-card-data');
+    localStorage.removeItem('editing-card-id');
+    
+    console.log('🧹 Dados limpos');
+    
+    // Fechar modal
+    closeLogoutModal();
+    
+    // Redirecionar com pequeno delay para melhor UX
+    setTimeout(() => {
+        window.location.href = 'index.html';
+    }, 300);
 };
 
 // ========== FUNÇÕES DE LIMPEZA E COMPRESSÃO ==========

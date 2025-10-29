@@ -1,0 +1,59 @@
+{
+  "name": "cartao-visita-virtual-backend",
+  "version": "1.0.0",
+  "description": "Backend API para o sistema de cartões de visita virtuais",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "lint": "echo \"Linting process would go here\"",
+    "build": "echo \"Build process would go here\"",
+    "prod": "node index.js",
+    "pm2": "pm2 start index.js --name backend-api",
+    "pm2:stop": "pm2 stop backend-api",
+    "pm2:restart": "pm2 restart backend-api",
+    "pm2:delete": "pm2 delete backend-api"
+  },
+  "keywords": [
+    "cartao-visita",
+    "digital",
+    "api",
+    "express",
+    "mongodb",
+    "jwt",
+    "qr-code"
+  ],
+  "author": "Neto Carvalho",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^1.12.2",
+    "bcryptjs": "^2.4.3",
+    "compression": "^1.7.4",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "express-rate-limit": "^7.1.5",
+    "helmet": "^7.1.0",
+    "joi": "^17.13.3",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.19.2",
+    "morgan": "^1.10.0",
+    "multer": "^1.4.5-lts.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2",
+    "pm2": "^5.4.3"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/neto-carvalho/cartao-visita-virtual.git"
+  },
+  "bugs": {
+    "url": "https://github.com/neto-carvalho/cartao-visita-virtual/issues"
+  },
+  "homepage": "https://github.com/neto-carvalho/cartao-visita-virtual#readme"
+}

@@ -450,18 +450,23 @@ const Utils = {
 };
 
 // Inicializar aplicação
-const initializeApp = () => {
+const initializeApp = async () => {
     console.log('🚀 Inicializando aplicação...');
     
     // Verificar se está editando um cartão existente ANTES de limpar
     const editingCardId = localStorage.getItem('editing-card-id');
+    const cardDataBeforeClear = localStorage.getItem('virtual-card-data');
+    console.log('📋 Dados ANTES de clearStorageIfNeeded:', cardDataBeforeClear ? cardDataBeforeClear.substring(0, 200) : 'null');
     
     // Limpar localStorage se necessário (mas preservar dados de edição)
     Utils.clearStorageIfNeeded();
+    
+    const cardDataAfterClear = localStorage.getItem('virtual-card-data');
+    console.log('📋 Dados DEPOIS de clearStorageIfNeeded:', cardDataAfterClear ? cardDataAfterClear.substring(0, 200) : 'null');
     console.log('🔍 Verificando editing-card-id no app.js:', editingCardId);
     if (editingCardId) {
         console.log('📝 Modo de edição detectado para cartão:', editingCardId);
-        loadCardForEditing(editingCardId);
+        await loadCardForEditing(editingCardId);
     } else {
         // Verificar se é uma nova criação (não deve carregar dados antigos)
         const isNewCard = localStorage.getItem('creating-new-card');
@@ -486,46 +491,68 @@ const initializeApp = () => {
 };
 
 // Carregar dados de um cartão específico para edição
-const loadCardForEditing = (cardId) => {
+const loadCardForEditing = async (cardId) => {
     console.log('🔄 Carregando cartão para edição:', cardId);
-    console.log('🔍 CardsManager disponível?', !!window.CardsManager);
     
-    // Tentar carregar via CardsManager primeiro
-    if (window.CardsManager) {
-        console.log('📋 Buscando cartão via CardsManager...');
-        const card = window.CardsManager.getCardById(cardId);
-        console.log('📋 Cartão encontrado:', card);
-        
-        if (card && card.data) {
-            console.log('✅ Cartão encontrado via CardsManager:', card);
-            console.log('📋 Dados do cartão:', card.data);
+    // SEMPRE buscar o cartão da API para garantir dados atualizados
+    if (typeof apiService !== 'undefined' && apiService.getCard) {
+        try {
+            console.log('🌐 Buscando cartão na API...');
+            const card = await apiService.getCard(cardId);
+            console.log('✅ Cartão obtido da API:', card);
             
             // Limpar appState primeiro
             Object.keys(appState).forEach(key => {
                 delete appState[key];
             });
             
-            // Carregar dados do cartão
-            Object.assign(appState, card.data);
-            console.log('✅ Dados do cartão carregados no appState:', appState);
-            console.log('📋 Personal Info após carregamento:', appState.personalInfo);
+            // Converter dados da API para o formato esperado
+            const cardData = {
+                personalInfo: {
+                    fullName: card.name || '',
+                    jobTitle: card.jobTitle || '',
+                    description: card.description || '',
+                    email: card.email || '',
+                    phone: card.phone || ''
+                },
+                image: card.image || null,
+                design: {
+                    primaryColor: card.color || '#00BFFF',
+                    theme: card.theme || 'modern',
+                    secondaryColor: '#EEE8AA',
+                    textColor: '#FFFFFF',
+                    buttonTextColor: '#FFFFFF'
+                },
+                links: (card.links || []).map(link => ({
+                    id: link._id || Math.random().toString(36).substring(7),
+                    label: link.title || '',
+                    url: link.url || '',
+                    type: link.type || 'custom'
+                })),
+                featureSections: []
+            };
+            
+            // Carregar dados no appState
+            Object.assign(appState, cardData);
+            console.log('✅ Dados do cartão carregados da API:', appState);
+            console.log('✅ Nome após carregar:', appState.personalInfo?.fullName);
+            
+            // Limpar localStorage para evitar conflitos
+            localStorage.removeItem('virtual-card-data');
+            
             return;
-        } else {
-            console.warn('⚠️ Cartão não encontrado ou sem dados via CardsManager');
+        } catch (error) {
+            console.error('❌ Erro ao buscar cartão da API:', error);
+            console.error('❌ Tentando fallback via localStorage...');
         }
-    } else {
-        console.warn('⚠️ CardsManager não disponível');
     }
     
-    // Fallback: tentar carregar do localStorage
-    console.log('🔄 Tentando fallback via localStorage...');
+    // Fallback: verificar localStorage (apenas se API falhar)
     const cardData = localStorage.getItem('virtual-card-data');
-    console.log('📋 Dados do localStorage:', cardData ? 'Presente' : 'Ausente');
-    
     if (cardData) {
         try {
+            console.log('📋 Dados encontrados no localStorage (fallback)');
             const data = JSON.parse(cardData);
-            console.log('📋 Dados parseados do localStorage:', data);
             
             // Limpar appState primeiro
             Object.keys(appState).forEach(key => {
@@ -535,13 +562,13 @@ const loadCardForEditing = (cardId) => {
             // Carregar dados do localStorage
             Object.assign(appState, data);
             console.log('✅ Dados carregados do localStorage (fallback):', appState);
-            console.log('📋 Personal Info após fallback:', appState.personalInfo);
+            return;
         } catch (error) {
-            console.error('❌ Erro ao carregar dados do cartão:', error);
+            console.error('❌ Erro ao carregar dados do localStorage:', error);
         }
-    } else {
-        console.warn('⚠️ Nenhum dado encontrado no localStorage');
     }
+    
+    console.warn('⚠️ Nenhum dado encontrado');
 };
 
 // Configurar eventos globais
@@ -561,6 +588,13 @@ const setupGlobalEvents = () => {
     const proxyAppState = new Proxy(appState, {
         set(target, property, value) {
             target[property] = value;
+            
+            // NÃO salvar no localStorage se estiver editando um cartão existente
+            const editingCardId = localStorage.getItem('editing-card-id');
+            if (editingCardId) {
+                console.log('⚠️ Editando cartão existente, pulando auto-save no localStorage');
+                return true;
+            }
             
             // Verificar se há imagens grandes antes de salvar
             const hasLargeImages = (target.image && target.image.length > 100000) || 

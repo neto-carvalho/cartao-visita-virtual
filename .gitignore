@@ -22,6 +22,7 @@ desktop.ini
 .env
 .env.local
 .env.*.local
+backend/config.env
 
 # Build files
 dist/

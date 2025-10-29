@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Teste API</title>
+</head>
+<body>
+    <h1>Teste de API</h1>
+    <button onclick="testarRegistro()">Testar Registro</button>
+    <button onclick="testarLogin()">Testar Login</button>
+    <pre id="resultado"></pre>
+
+    <script>
+        async function testarRegistro() {
+            const resultado = document.getElementById('resultado');
+            try {
+                const response = await fetch('http://localhost:5000/api/auth/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        name: 'Teste User',
+                        email: 'teste' + Date.now() + '@teste.com',
+                        password: 'senha123'
+                    })
+                });
+                const data = await response.json();
+                resultado.textContent = JSON.stringify(data, null, 2);
+            } catch (error) {
+                resultado.textContent = 'Erro: ' + error.message;
+            }
+        }
+
+        async function testarLogin() {
+            const resultado = document.getElementById('resultado');
+            try {
+                const response = await fetch('http://localhost:5000/api/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        email: 'teste@teste.com',
+                        password: 'senha123'
+                    })
+                });
+                const data = await response.json();
+                resultado.textContent = JSON.stringify(data, null, 2);
+            } catch (error) {
+                resultado.textContent = 'Erro: ' + error.message;
+            }
+        }
+    </script>
+</body>
+</html>
+
+
