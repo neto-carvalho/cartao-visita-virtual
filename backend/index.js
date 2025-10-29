@@ -57,8 +57,9 @@ const corsOptions = {
             'http://127.0.0.1:3001'
         ];
         
-        // Permitir requisições sem origin (Postman, mobile apps, etc) apenas em desenvolvimento
-        if (process.env.NODE_ENV === 'development') {
+        // Permitir requisições sem origin (health checks, servidores, Postman, etc)
+        // Em produção, health checks do provedor geralmente não enviam origin
+        if (!origin) {
             return callback(null, true);
         }
         
