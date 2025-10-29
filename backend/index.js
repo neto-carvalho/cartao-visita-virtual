@@ -46,6 +46,15 @@ app.use(helmet({
     crossOriginEmbedderPolicy: false
 }));
 
+// Endpoint de health aberto (sem CORS), necessário para health checks do provedor
+app.get('/health', (req, res) => {
+    res.status(200).json({
+        success: true,
+        status: 'healthy',
+        timestamp: new Date().toISOString()
+    });
+});
+
 // 2. CORS - Configuração restritiva, apenas domínios confiáveis
 const corsOptions = {
     origin: function (origin, callback) {
