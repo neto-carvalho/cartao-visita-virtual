@@ -11,6 +11,10 @@ class Logger {
             info: 2,
             debug: 3
         };
+
+        // Garantir o contexto correto quando usado como middleware Express
+        this.httpLogger = this.httpLogger.bind(this);
+        this.errorLogger = this.errorLogger.bind(this);
     }
 
     shouldLog(level) {
