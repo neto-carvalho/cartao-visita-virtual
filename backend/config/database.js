@@ -20,9 +20,11 @@ async function connectDB() {
         };
 
         // Configurações específicas para produção
+        // Observação: Para MongoDB Atlas, não é necessário forçar ssl/tls via options;
+        // o driver negocia automaticamente a conexão segura a partir da URI.
+        // Removemos opções não suportadas como sslValidate para evitar erros.
         if (process.env.NODE_ENV === 'production') {
-            options.ssl = true;
-            options.sslValidate = true;
+            // Mantemos apenas timeouts/ajustes genéricos definidos acima
         }
 
         const connection = await mongoose.connect(MONGO_URI, options);
