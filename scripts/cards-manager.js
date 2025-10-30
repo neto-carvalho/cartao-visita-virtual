@@ -5,6 +5,7 @@
 // Estrutura de dados dos cartões
 const CardsManager = {
     STORAGE_KEY: 'virtual-cards-collection',
+    FAVORITES_KEY: 'virtual-card-favorites',
     
     // Inicializar sistema
     init() {
@@ -22,6 +23,10 @@ const CardsManager = {
                 cards: []
             });
         }
+        // Garantir estrutura de favoritos
+        if (!localStorage.getItem(this.FAVORITES_KEY)) {
+            localStorage.setItem(this.FAVORITES_KEY, JSON.stringify({}));
+        }
     },
     
     // Usuário padrão
@@ -33,6 +38,35 @@ const CardsManager = {
             avatar: null,
             createdAt: new Date().toISOString()
         };
+    },
+
+    // ===================== FAVORITOS (persistência local por ID) =====================
+    getFavoritesMap() {
+        try {
+            const raw = localStorage.getItem(this.FAVORITES_KEY);
+            return raw ? JSON.parse(raw) : {};
+        } catch (e) {
+            return {};
+        }
+    },
+    isFavorite(cardId) {
+        const map = this.getFavoritesMap();
+        return !!map[cardId];
+    },
+    setFavorite(cardId, value) {
+        const map = this.getFavoritesMap();
+        if (value) {
+            map[cardId] = true;
+        } else {
+            delete map[cardId];
+        }
+        localStorage.setItem(this.FAVORITES_KEY, JSON.stringify(map));
+        return value;
+    },
+    toggleFavoriteById(cardId) {
+        const current = this.isFavorite(cardId);
+        this.setFavorite(cardId, !current);
+        return !current;
     },
     
     // Carregar todos os dados

@@ -250,7 +250,8 @@ const loadCards = async (filter = null, searchQuery = null) => {
                 links: (card.links || []).map(link => ({
                     label: link.title,
                     url: link.url,
-                    type: link.type || 'custom'
+                    type: link.type || 'custom',
+                    color: link.color || (card.color || '#00BFFF')
                 }))
             },
             isActive: card.isActive,
@@ -259,6 +260,9 @@ const loadCards = async (filter = null, searchQuery = null) => {
             updatedAt: card.updatedAt,
             views: card.views || 0,
             shares: card.shares || 0
+        })).map(c => ({
+            ...c,
+            isFavorite: (typeof CardsManager !== 'undefined') ? CardsManager.isFavorite(c.id) : false
         }));
         
         // Aplicar pesquisa
@@ -629,9 +633,11 @@ window.shareCard = async (cardId) => {
 
 window.toggleFavorite = async (cardId) => {
     try {
-        // Nota: favoritar será implementado no backend depois
         console.log('⭐ Toggle favorito:', cardId);
-        // Por enquanto, apenas recarregar
+        if (typeof CardsManager !== 'undefined') {
+            const fav = CardsManager.toggleFavoriteById(cardId);
+            console.log('⭐ Favorito agora:', fav);
+        }
         await loadCards();
         loadStats();
     } catch (error) {
@@ -986,7 +992,8 @@ const loadMyCards = async () => {
                 links: (card.links || []).map(link => ({
                     label: link.title,
                     url: link.url,
-                    type: link.type || 'custom'
+                    type: link.type || 'custom',
+                    color: link.color || (card.color || '#00BFFF')
                 }))
             },
             isActive: card.isActive,
@@ -1209,15 +1216,47 @@ const loadTopCards = (cards) => {
 };
 
 // ========== SEÇÃO FAVORITOS ==========
-const loadFavorites = () => {
+const loadFavorites = async () => {
     const container = document.getElementById('favoritesContainer');
     if (!container) return;
-    
-    const favoriteCards = CardsManager.getAllCards().filter(card => card.isFavorite);
-    renderFavorites(favoriteCards);
-    
-    // Inicializar pesquisa para favoritos
-    initializeFavoritesSearch();
+    try {
+        let cards = await apiService.getCards();
+        const favMap = (typeof CardsManager !== 'undefined') ? CardsManager.getFavoritesMap() : {};
+        cards = cards
+            .filter(c => favMap[c._id || c.id])
+            .map(card => ({
+                id: card._id || card.id,
+                name: card.name,
+                data: {
+                    personalInfo: {
+                        fullName: card.name,
+                        jobTitle: card.jobTitle || '',
+                        description: card.description || '',
+                        email: card.email || '',
+                        phone: card.phone || ''
+                    },
+                    image: card.image || null,
+                    design: {
+                        primaryColor: card.color || '#00BFFF',
+                        theme: card.theme || 'modern'
+                    },
+                    links: (card.links || []).map(link => ({
+                        label: link.title,
+                        url: link.url,
+                        type: link.type || 'custom'
+                    }))
+                },
+                isActive: card.isActive,
+                isFavorite: true,
+                createdAt: card.createdAt,
+                updatedAt: card.updatedAt
+            }));
+        renderFavorites(cards);
+        initializeFavoritesSearch();
+    } catch (e) {
+        console.error('❌ Erro ao carregar favoritos:', e);
+        container.innerHTML = '<p class="empty-text">Erro ao carregar favoritos.</p>';
+    }
 };
 
 const renderFavorites = (cards) => {
