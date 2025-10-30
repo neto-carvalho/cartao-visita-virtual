@@ -529,7 +529,13 @@ const loadCardForEditing = async (cardId) => {
                     url: link.url || '',
                     type: link.type || 'custom'
                 })),
-                featureSections: []
+                featureSections: (card.featureSections || []).map(section => ({
+                    title: section.title || '',
+                    description: section.description || '',
+                    image: section.image || null,
+                    buttonText: section.buttonText || '',
+                    buttonUrl: section.buttonUrl || ''
+                }))
             };
             
             // Carregar dados no appState
