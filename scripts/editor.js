@@ -89,6 +89,24 @@ const loadSavedData = () => {
     const editingCardId = localStorage.getItem('editing-card-id');
     if (editingCardId) {
         console.log('🔍 Modo de edição detectado. ID do cartão:', editingCardId);
+        try {
+            const saved = localStorage.getItem('virtual-card-data');
+            if (saved) {
+                const parsed = JSON.parse(saved);
+                console.log('📦 Dados do cartão vindos do localStorage:', parsed);
+                // Mesclar diretamente no estado do editor para evitar página em branco
+                Object.assign(window.appState, {
+                    personalInfo: parsed.personalInfo || window.appState.personalInfo,
+                    design: parsed.design || window.appState.design,
+                    image: parsed.image ?? window.appState.image,
+                    links: Array.isArray(parsed.links) ? parsed.links : (window.appState.links || []),
+                    featureSections: Array.isArray(parsed.featureSections) ? parsed.featureSections : (window.appState.featureSections || [])
+                });
+                console.log('✅ Estado do editor atualizado a partir do localStorage');
+            }
+        } catch (e) {
+            console.warn('⚠️ Falha ao carregar dados de edição do localStorage:', e);
+        }
         
         // Aguardar um pouco para garantir que os dados foram carregados
         setTimeout(() => {
