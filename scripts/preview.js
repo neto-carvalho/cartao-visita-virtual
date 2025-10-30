@@ -170,12 +170,15 @@ const generateCardContent = (personalInfo, image, links, featureSections = [], s
         content += '<div class="link-buttons">';
         links.forEach(link => {
             const icon = getSocialIcon(link.type);
-            content += `<a href="${link.url}" target="_blank" class="link-button" 
-                style="background-color: ${link.color}; color: ${appState.design.buttonTextColor};">
+            const bg = link.color || appState.design.primaryColor;
+            const text = link.title && link.title.trim() !== '' ? link.title : 'Link';
+            const href = link.url && link.url.trim() !== '' ? link.url : '#';
+            content += `<a href="${href}" target="_blank" class="link-button" 
+                style="background-color: ${bg}; color: ${appState.design.buttonTextColor};">
                 <div class="link-icon">
                     <i class="${icon}"></i>
                 </div>
-                <div class="link-text">${link.title}</div>
+                <div class="link-text">${text}</div>
             </a>`;
         });
         content += '</div>';

@@ -175,20 +175,13 @@ const updateLinksArray = () => {
     const links = [];
 
     linkItems.forEach(item => {
-        const type = item.querySelector('.link-type')?.value;
-        const title = item.querySelector('.link-title')?.value;
-        const url = item.querySelector('.link-url')?.value;
-        const color = item.querySelector('.link-button-color')?.value;
+        const type = item.querySelector('.link-type')?.value || 'custom';
+        const title = item.querySelector('.link-title')?.value || '';
+        const url = item.querySelector('.link-url')?.value || '';
+        const color = item.querySelector('.link-button-color')?.value || '#00BFFF';
 
-        // Só adicionar se pelo menos o tipo e título estiverem preenchidos
-        if (type && title && url) {
-            links.push({
-                type,
-                title,
-                url,
-                color: color || '#00BFFF'
-            });
-        }
+        // Adicionar mesmo que parcial; preview lida com placeholders
+        links.push({ type, title, url, color });
     });
 
     // Atualizar estado
