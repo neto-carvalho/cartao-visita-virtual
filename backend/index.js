@@ -108,8 +108,9 @@ const limiter = rateLimit({
 app.use('/api/', limiter);
 
 // Middlewares globais
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true }));
+// Aceitar payloads maiores (imagens base64) para criação/edição de cartões
+app.use(express.json({ limit: '20mb' }));
+app.use(express.urlencoded({ extended: true, limit: '20mb' }));
 
 // 4. Middleware de logging otimizado
 app.use(logger.httpLogger);
