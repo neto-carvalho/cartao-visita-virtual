@@ -768,12 +768,15 @@
                 html += '<div class="link-buttons">';
                 links.forEach(link => {
                     const icon = getSocialIcon(link.type);
+                    const text = link.label || link.title || 'Link';
+                    const bg = link.color || design.primaryColor || '#00BFFF';
+                    const href = link.url || '#';
                     html += `
-                        <a href="${link.url}" target="_blank" class="link-button" style="background-color: ${link.color}; color: ${design.buttonTextColor || '#ffffff'};">
+                        <a href="${href}" target="_blank" class="link-button" style="background-color: ${bg}; color: ${design.buttonTextColor || '#ffffff'};">
                             <div class="link-icon">
                                 <i class="${icon}"></i>
                             </div>
-                            <div class="link-text">${link.title}</div>
+                            <div class="link-text">${text}</div>
                         </a>
                     `;
                 });

@@ -157,7 +157,12 @@ const loadSavedData = () => {
                             });
                             await saveData();
                             // Re-renderizar editores dependentes
-                            renderLinks();
+                            // Re-renderizar componentes de links
+                            if (typeof window.initializeLinks === 'function') {
+                                window.initializeLinks();
+                            } else if (typeof renderLinks === 'function') {
+                                renderLinks();
+                            }
                             if (typeof window.initializeFeatures === 'function') {
                                 window.initializeFeatures();
                             }
