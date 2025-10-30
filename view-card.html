@@ -556,7 +556,45 @@
                 }
             }
             
-            // TERCEIRO: Se não encontrou via CardsManager, tentar localStorage diretamente
+            // TERCEIRO: Se não encontrou via CardsManager, tentar buscar na API usando ID (requer token, mas usamos se existir)
+            (async () => {
+                try {
+                    const base = (window.APP_CONFIG && window.APP_CONFIG.API_BASE_URL) || 'http://localhost:5000';
+                    const token = (typeof localStorage !== 'undefined') ? localStorage.getItem('auth_token') : null;
+                    if (token && cardId) {
+                        const resp = await fetch(`${base}/api/cards/${encodeURIComponent(cardId)}`, {
+                            headers: { 'Authorization': `Bearer ${token}` }
+                        });
+                        if (resp.ok) {
+                            const json = await resp.json();
+                            const c = json.data || json;
+                            const card = {
+                                data: {
+                                    personalInfo: {
+                                        fullName: c.name,
+                                        jobTitle: c.jobTitle || '',
+                                        description: c.description || '',
+                                        email: c.email || '',
+                                        phone: c.phone || ''
+                                    },
+                                    image: c.image || null,
+                                    design: {
+                                        primaryColor: c.color || '#00BFFF',
+                                        theme: c.theme || 'modern'
+                                    },
+                                    links: (c.links || []).map(l => ({ label: l.title || (l.type || 'link'), url: l.url, type: l.type || 'custom' }))
+                                }
+                            };
+                            renderCard(card);
+                            return;
+                        }
+                    }
+                } catch (e) {
+                    console.warn('⚠️ Falha ao buscar cartão por ID na API:', e);
+                }
+            })();
+
+            // QUARTO: Se ainda não encontrou, tentar localStorage diretamente
             console.log('⚠️ Cartão não encontrado via CardsManager, tentando localStorage...');
             
             try {
