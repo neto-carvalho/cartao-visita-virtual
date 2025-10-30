@@ -103,6 +103,9 @@ const loadSavedData = () => {
                     featureSections: Array.isArray(parsed.featureSections) ? parsed.featureSections : (window.appState.featureSections || [])
                 });
                 console.log('✅ Estado do editor atualizado a partir do localStorage');
+                if (typeof window.updatePreview === 'function') {
+                    window.updatePreview(true);
+                }
             }
         } catch (e) {
             console.warn('⚠️ Falha ao carregar dados de edição do localStorage:', e);
@@ -113,6 +116,9 @@ const loadSavedData = () => {
             console.log('📋 Dados após timeout:', window.appState);
             if (window.appState.personalInfo && window.appState.personalInfo.fullName) {
                 console.log('✅ Dados do cartão carregados corretamente');
+                if (typeof window.updatePreview === 'function') {
+                    window.updatePreview(true);
+                }
             } else {
                 console.warn('⚠️ Dados do cartão não foram carregados, tentando novamente...');
                 // Tentar carregar novamente
@@ -122,6 +128,9 @@ const loadSavedData = () => {
                         console.log('🔄 Recarregando dados do cartão...');
                         Object.assign(window.appState, card.data);
                         console.log('✅ Dados recarregados:', window.appState);
+                        if (typeof window.updatePreview === 'function') {
+                            window.updatePreview(true);
+                        }
                     }
                 }
             }
