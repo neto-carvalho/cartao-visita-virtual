@@ -511,7 +511,7 @@
                             theme: c.theme || 'modern',
                             customGradient: c.customGradient || null
                         },
-                        links: (c.links || []).map(l => ({ label: l.title || (l.type || 'link'), url: l.url, type: l.type || 'custom' })),
+                        links: (c.links || []).map(l => ({ label: l.title || (l.type || 'link'), url: l.url, type: l.type || 'custom', color: l.color || c.color || '#00BFFF' })),
                         featureSections: (c.featureSections || []).map(s => ({
                             title: s.title,
                             description: s.description,
@@ -593,7 +593,7 @@
                                         primaryColor: c.color || '#00BFFF',
                                         theme: c.theme || 'modern'
                                     },
-                                    links: (c.links || []).map(l => ({ label: l.title || (l.type || 'link'), url: l.url, type: l.type || 'custom' }))
+                                    links: (c.links || []).map(l => ({ label: l.title || (l.type || 'link'), url: l.url, type: l.type || 'custom', color: l.color || c.color || '#00BFFF' }))
                                 }
                             };
                             renderCard(card);
