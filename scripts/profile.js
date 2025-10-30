@@ -8,6 +8,8 @@ document.addEventListener('DOMContentLoaded', () => {
     initializeProfile();
 });
 
+let apiCardsCache = [];
+
 const initializeProfile = async () => {
     console.log('👤 Inicializando perfil...');
     
@@ -43,7 +45,7 @@ const initializeProfile = async () => {
         loadUserInfo();
         
         console.log('📊 Carregando estatísticas...');
-        loadStats();
+        await loadStats();
         
         console.log('📋 Carregando cartões...');
         await loadCards();
@@ -179,14 +181,36 @@ const loadUserInfo = () => {
 };
 
 // ========== CARREGAR ESTATÍSTICAS ==========
-const loadStats = () => {
-    const stats = CardsManager.getStats();
-    
-    // Atualizar cards de estatísticas
-    updateStatCard('total-cards', stats.totalCards, `+${stats.activeCards} ativos`);
-    updateStatCard('total-views', formatNumber(stats.totalViews), '+15% esta semana');
-    updateStatCard('total-shares', formatNumber(stats.totalShares), '+8% hoje');
-    updateStatCard('total-contacts', formatNumber(stats.totalContacts), `+12 hoje`);
+const loadStats = async () => {
+    try {
+        // Usar cache quando existir; senão, buscar
+        if (!apiCardsCache || apiCardsCache.length === 0) {
+            let cards = await apiService.getCards();
+            apiCardsCache = cards.map(card => ({
+                id: card._id || card.id,
+                name: card.name,
+                isActive: card.isActive,
+                views: card.views || 0,
+                shares: card.shares || 0,
+                contacts: card.contacts || 0,
+                createdAt: card.createdAt,
+                updatedAt: card.updatedAt
+            }));
+        }
+        const stats = {
+            totalCards: apiCardsCache.length,
+            activeCards: apiCardsCache.filter(c => c.isActive).length,
+            totalViews: apiCardsCache.reduce((s, c) => s + (c.views || 0), 0),
+            totalShares: apiCardsCache.reduce((s, c) => s + (c.shares || 0), 0),
+            totalContacts: apiCardsCache.reduce((s, c) => s + (c.contacts || 0), 0)
+        };
+        updateStatCard('total-cards', stats.totalCards, `+${stats.activeCards} ativos`);
+        updateStatCard('total-views', formatNumber(stats.totalViews), '');
+        updateStatCard('total-shares', formatNumber(stats.totalShares), '');
+        updateStatCard('total-contacts', formatNumber(stats.totalContacts), '');
+    } catch (e) {
+        console.error('❌ Erro ao carregar estatísticas:', e);
+    }
 };
 
 const updateStatCard = (id, number, change) => {
@@ -282,6 +306,18 @@ const loadCards = async (filter = null, searchQuery = null) => {
             console.log('🔍 Após filtro:', cards.length);
         }
         
+        // Atualizar cache para estatísticas e outras seções
+        apiCardsCache = cards.map(c => ({
+            id: c.id,
+            name: c.name,
+            isActive: c.isActive,
+            views: c.views || 0,
+            shares: c.shares || 0,
+            contacts: c.contacts || 0,
+            createdAt: c.createdAt,
+            updatedAt: c.updatedAt
+        }));
+
         // Renderizar
         console.log('🎨 Renderizando cartões...');
         renderCards(cards);
@@ -1099,23 +1135,24 @@ const initializeMyCardsFilters = () => {
 };
 
 // ========== SEÇÃO ESTATÍSTICAS ==========
-const loadStatistics = () => {
-    const stats = CardsManager.getStats();
-    const cards = CardsManager.getAllCards();
-    
-    // Atualizar números principais
-    updateStatCard('stats-total-views', formatNumber(stats.totalViews));
-    updateStatCard('stats-total-shares', formatNumber(stats.totalShares));
-    
-    // Criar gráficos simples
-    createSimpleChart('viewsChartCanvas', generateChartData(cards, 'views'));
-    createSimpleChart('sharesChartCanvas', generateChartData(cards, 'shares'));
-    
-    // Carregar top cartões
+const loadStatistics = async () => {
+    // Garantir cache
+    if (!apiCardsCache || apiCardsCache.length === 0) {
+        await loadStats();
+    }
+    const cards = apiCardsCache;
+    const totals = {
+        totalViews: cards.reduce((s, c) => s + (c.views || 0), 0),
+        totalShares: cards.reduce((s, c) => s + (c.shares || 0), 0)
+    };
+    updateStatCard('stats-total-views', formatNumber(totals.totalViews));
+    updateStatCard('stats-total-shares', formatNumber(totals.totalShares));
+    createSimpleChart('viewsChartCanvas', generateChartDataApi(cards, 'views'));
+    createSimpleChart('sharesChartCanvas', generateChartDataApi(cards, 'shares'));
     loadTopCards(cards);
 };
 
-const generateChartData = (cards, metric) => {
+const generateChartDataApi = (cards, metric) => {
     const last7Days = [];
     const today = new Date();
     
