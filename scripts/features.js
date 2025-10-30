@@ -13,13 +13,21 @@ const initializeFeatures = () => {
         console.error('❌ Botão addFeatureBtn não encontrado!');
     }
     
-    // Carregar seções salvas
-    if (window.appState && window.appState.featureSections && window.appState.featureSections.length > 0) {
+    // Carregar seções salvas (sempre re-renderizar do zero para evitar duplicação)
+    const container = document.getElementById('featuresContainer');
+    if (container) {
+        container.innerHTML = '';
+    }
+    if (window.appState && Array.isArray(window.appState.featureSections) && window.appState.featureSections.length > 0) {
         window.appState.featureSections.forEach((feature, index) => {
             addFeatureSection(feature, index);
         });
     }
     
+    // Atualizar preview após montar a UI
+    if (typeof window.updatePreview === 'function') {
+        window.updatePreview(true);
+    }
     console.log('✅ Sistema de seções de destaque inicializado');
 };
 

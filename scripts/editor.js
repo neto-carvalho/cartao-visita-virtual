@@ -32,6 +32,9 @@ const initializeEditor = () => {
     initializeDesign();
     initializeImageUpload();
     initializeLinksEditor();
+    if (typeof window.initializeFeatures === 'function') {
+        window.initializeFeatures();
+    }
     initializeActions();
     initializePreviewControls();
     // updatePreview() é chamado automaticamente por preview.js
