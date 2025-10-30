@@ -113,6 +113,63 @@ const loadSavedData = () => {
         } catch (e) {
             console.warn('⚠️ Falha ao carregar dados de edição do localStorage:', e);
         }
+
+        // Reforço: buscar da API se disponível e dados estiverem faltando
+        (async () => {
+            try {
+                if (typeof apiService !== 'undefined' && apiService.isAuthenticated()) {
+                    const needsFetch = !window.appState.personalInfo?.fullName ||
+                        !Array.isArray(window.appState.links) ||
+                        !Array.isArray(window.appState.featureSections);
+                    if (needsFetch) {
+                        console.log('🌐 Buscando cartão da API para completar dados...');
+                        const c = await apiService.getCard(editingCardId);
+                        if (c) {
+                            Object.assign(window.appState, {
+                                personalInfo: {
+                                    fullName: c.name || window.appState.personalInfo?.fullName || '',
+                                    jobTitle: c.jobTitle || window.appState.personalInfo?.jobTitle || '',
+                                    description: c.description || window.appState.personalInfo?.description || '',
+                                    email: c.email || window.appState.personalInfo?.email || '',
+                                    phone: c.phone || window.appState.personalInfo?.phone || ''
+                                },
+                                image: c.image ?? window.appState.image ?? null,
+                                design: {
+                                    ...(window.appState.design || {}),
+                                    primaryColor: c.color || window.appState.design?.primaryColor || '#00BFFF',
+                                    theme: c.theme || window.appState.design?.theme || 'modern',
+                                    customGradient: c.customGradient || window.appState.design?.customGradient || null
+                                },
+                                links: (c.links || []).map(l => ({
+                                    id: l._id || Date.now(),
+                                    title: l.title || (l.type || 'Link'),
+                                    url: l.url || '',
+                                    type: l.type || 'custom',
+                                    color: l.color || (c.color || '#00BFFF')
+                                })),
+                                featureSections: (c.featureSections || []).map(s => ({
+                                    title: s.title || '',
+                                    description: s.description || '',
+                                    image: s.image || null,
+                                    buttonText: s.buttonText || '',
+                                    buttonUrl: s.buttonUrl || ''
+                                }))
+                            });
+                            await saveData();
+                            // Re-renderizar editores dependentes
+                            renderLinks();
+                            if (typeof window.initializeFeatures === 'function') {
+                                window.initializeFeatures();
+                            }
+                            requestPreviewUpdate(true);
+                            console.log('✅ Dados do cartão completados via API');
+                        }
+                    }
+                }
+            } catch (apiErr) {
+                console.warn('⚠️ Falha ao complementar dados via API:', apiErr);
+            }
+        })();
         
         // Aguardar um pouco para garantir que os dados foram carregados
         setTimeout(() => {
