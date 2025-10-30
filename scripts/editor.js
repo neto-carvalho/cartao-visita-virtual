@@ -156,6 +156,19 @@ const loadSavedData = () => {
                                 }))
                             });
                             await saveData();
+                            // Repopular inputs de informações pessoais com os dados carregados
+                            try {
+                                const inputs = {
+                                    fullName: document.getElementById('fullName'),
+                                    jobTitle: document.getElementById('jobTitle'),
+                                    description: document.getElementById('description'),
+                                    email: document.getElementById('email')
+                                };
+                                if (inputs.fullName) inputs.fullName.value = window.appState.personalInfo.fullName || '';
+                                if (inputs.jobTitle) inputs.jobTitle.value = window.appState.personalInfo.jobTitle || '';
+                                if (inputs.description) inputs.description.value = window.appState.personalInfo.description || '';
+                                if (inputs.email) inputs.email.value = window.appState.personalInfo.email || '';
+                            } catch (e) { console.warn('⚠️ Falha ao repopular inputs:', e); }
                             // Re-renderizar editores dependentes
                             // Re-renderizar componentes de links
                             if (typeof window.initializeLinks === 'function') {
