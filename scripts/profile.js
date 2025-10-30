@@ -1286,7 +1286,10 @@ const loadFavorites = async () => {
                 isActive: card.isActive,
                 isFavorite: true,
                 createdAt: card.createdAt,
-                updatedAt: card.updatedAt
+                updatedAt: card.updatedAt,
+                views: card.views || 0,
+                shares: card.shares || 0,
+                contacts: card.contacts || 0
             }));
         renderFavorites(cards);
         initializeFavoritesSearch();
