@@ -24,10 +24,15 @@ class PublicCardController {
             // Incrementar visualizações
             await card.incrementViews();
 
-            // Retornar dados públicos (sem userId)
+            // Retornar dados públicos (sem userId) e com cor nos links
+            const obj = card.toObject();
             const publicCard = {
-                ...card.toObject(),
-                userId: undefined
+                ...obj,
+                userId: undefined,
+                links: (obj.links || []).map(l => ({
+                    ...l,
+                    color: l.color || obj.color || '#00BFFF'
+                }))
             };
 
             return res.status(200).json({
@@ -66,10 +71,14 @@ class PublicCardController {
             // Incrementar visualizações
             await card.incrementViews();
 
-            // Retornar dados públicos
+            const obj = card.toObject();
             const publicCard = {
-                ...card.toObject(),
-                userId: undefined
+                ...obj,
+                userId: undefined,
+                links: (obj.links || []).map(l => ({
+                    ...l,
+                    color: l.color || obj.color || '#00BFFF'
+                }))
             };
 
             return res.status(200).json({
