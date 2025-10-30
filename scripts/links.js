@@ -18,6 +18,18 @@ const initializeLinks = () => {
     if (addLinkBtn) {
         addLinkBtn.addEventListener('click', addLinkItem);
     }
+
+    // Delegação: qualquer alteração em inputs/seletores atualiza o estado e o preview
+    const linksContainer = document.querySelector('.links-container');
+    if (linksContainer && !linksContainer.__linksDelegationBound) {
+        const handler = () => {
+            updateLinksArray();
+            if (typeof updatePreview === 'function') updatePreview();
+        };
+        linksContainer.addEventListener('input', handler, true);
+        linksContainer.addEventListener('change', handler, true);
+        linksContainer.__linksDelegationBound = true;
+    }
     
     console.log('✅ Sistema de links inicializado');
 };
