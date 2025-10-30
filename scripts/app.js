@@ -583,6 +583,14 @@ const setupGlobalEvents = () => {
     // Auto-save com debounce (só salva após 5 segundos de inatividade)
     const debouncedSave = Utils.debounce(async () => {
         if (window.appState) {
+            // Respeitar configuração de Auto Save
+            try {
+                const settings = typeof CardsManager !== 'undefined' ? CardsManager.getSettings() : { autoSave: true };
+                if (settings && settings.autoSave === false) {
+                    console.log('⏸️ Auto-save desativado pelas configurações');
+                    return;
+                }
+            } catch (e) {}
             console.log('💾 Auto-save executado...');
             await Utils.saveToStorage(window.appState);
         }
@@ -609,6 +617,13 @@ const setupGlobalEvents = () => {
                                      section.image && section.image.length > 100000));
             
             if (!hasLargeImages) {
+                // Respeitar configuração de Auto Save
+                try {
+                    const settings = typeof CardsManager !== 'undefined' ? CardsManager.getSettings() : { autoSave: true };
+                    if (settings && settings.autoSave === false) {
+                        return true;
+                    }
+                } catch (e) {}
                 // Cancelar save anterior e agendar novo
                 clearTimeout(saveTimeout);
                 saveTimeout = setTimeout(() => {
@@ -627,6 +642,10 @@ const setupGlobalEvents = () => {
 
     // Salvar antes de sair da página
     window.addEventListener('beforeunload', async () => {
+        try {
+            const settings = typeof CardsManager !== 'undefined' ? CardsManager.getSettings() : { autoSave: true };
+            if (settings && settings.autoSave === false) return;
+        } catch (e) {}
         await Utils.saveToStorage(appState);
     });
 

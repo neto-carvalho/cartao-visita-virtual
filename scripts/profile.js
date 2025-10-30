@@ -1382,6 +1382,19 @@ const setupSettingsEventListeners = () => {
     toggles.forEach(toggle => {
         toggle.addEventListener('change', saveSettings);
     });
+
+    // Botões de ação
+    const exportBtn = document.getElementById('exportUserDataBtn');
+    if (exportBtn) exportBtn.addEventListener('click', window.exportUserData);
+
+    const clearCacheBtn = document.getElementById('clearCacheBtn');
+    if (clearCacheBtn) clearCacheBtn.addEventListener('click', window.clearCache);
+
+    const deleteAccountBtn = document.getElementById('deleteAccountBtn');
+    if (deleteAccountBtn) deleteAccountBtn.addEventListener('click', window.deleteAccount);
+
+    const updateProfileBtn = document.getElementById('updateUserProfileBtn');
+    if (updateProfileBtn) updateProfileBtn.addEventListener('click', window.updateUserProfile);
 };
 
 const handleAvatarUpload = (event) => {
