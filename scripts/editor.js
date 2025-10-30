@@ -141,6 +141,20 @@ const loadSavedData = () => {
     }
 };
 
+// Debounce para evitar excesso de renders
+let previewUpdateTimer = null;
+const requestPreviewUpdate = (force = false) => {
+    if (typeof window.updatePreview !== 'function') return;
+    if (force) {
+        window.updatePreview(true);
+        return;
+    }
+    clearTimeout(previewUpdateTimer);
+    previewUpdateTimer = setTimeout(() => {
+        window.updatePreview();
+    }, 50);
+};
+
 const saveData = async () => {
     // Salvar no localStorage através do app.js
     if (window.Utils && typeof window.Utils.saveToStorage === 'function') {
@@ -152,6 +166,8 @@ const saveData = async () => {
     } else {
         localStorage.setItem('virtual-card-data', JSON.stringify(window.appState));
     }
+    // Atualizar preview em todos os saves
+    requestPreviewUpdate();
 };
 
 const showNotification = (message, type = 'success') => {
@@ -234,9 +250,7 @@ const initializeThemes = () => {
             // Atualizar estado
             window.appState.design.theme = theme;
             saveData();
-            if (typeof window.updatePreview === 'function') {
-                window.updatePreview(true);
-            }
+            requestPreviewUpdate(true);
         });
     });
 };
@@ -263,9 +277,7 @@ const initializeCustomGradient = () => {
             });
             
             saveData();
-            if (typeof window.updatePreview === 'function') {
-                window.updatePreview(true);
-            }
+            requestPreviewUpdate(true);
             
             Utils.showNotification('Gradiente personalizado aplicado!', 'success');
         });
@@ -286,9 +298,7 @@ const initializeCustomGradient = () => {
             }
             
             saveData();
-            if (typeof window.updatePreview === 'function') {
-                window.updatePreview(true);
-            }
+            requestPreviewUpdate(true);
             
             Utils.showNotification('Gradiente personalizado removido!', 'success');
         });
