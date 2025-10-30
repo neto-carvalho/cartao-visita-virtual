@@ -223,8 +223,12 @@ const addFeatureSection = (existingData = null, index = null) => {
 
 // Atualizar seção de destaque
 const updateFeatureSection = (index, field, value) => {
-    if (!window.appState.featureSections[index]) return;
-    
+    if (!Array.isArray(window.appState.featureSections)) {
+        window.appState.featureSections = [];
+    }
+    if (!window.appState.featureSections[index]) {
+        window.appState.featureSections[index] = { title: '', description: '', image: null, buttonText: '', buttonUrl: '' };
+    }
     window.appState.featureSections[index][field] = value;
     console.log(`📝 Seção ${index} atualizada - ${field}:`, value);
     
@@ -278,7 +282,13 @@ const handleFeatureImageUpload = (event, index) => {
         const imageData = e.target.result;
         console.log('✅ Imagem convertida para base64');
         
-        // Atualizar estado (garantir que é uma string)
+        // Garantir estrutura e atualizar estado (garantir que é uma string)
+        if (!Array.isArray(window.appState.featureSections)) {
+            window.appState.featureSections = [];
+        }
+        if (!window.appState.featureSections[index]) {
+            window.appState.featureSections[index] = { title: '', description: '', image: null, buttonText: '', buttonUrl: '' };
+        }
         if (typeof imageData === 'string') {
             window.appState.featureSections[index].image = imageData;
             console.log('💾 Estado atualizado com imagem');
