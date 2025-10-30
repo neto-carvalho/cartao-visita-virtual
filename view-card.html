@@ -529,7 +529,7 @@
         }
 
         // Função para carregar dados do cartão
-        function loadCardData(cardId) {
+        async function loadCardData(cardId) {
             console.log('📂 Tentando carregar dados do cartão:', cardId);
             
             // PRIMEIRO: Tentar carregar dados da URL (para funcionar no mobile)
@@ -547,16 +547,15 @@
                 }
             }
             
-            // SEGUNDO: Tentar buscar na API usando ID (requer token) ANTES do CardsManager para evitar dados desatualizados
-            (async () => {
-                try {
-                    const base = (window.APP_CONFIG && window.APP_CONFIG.API_BASE_URL)
-                        || (window.location.hostname.endsWith('vercel.app') ? 'https://alleged-giralda-visitavirtual-e8216580.koyeb.app' : 'http://localhost:5000');
-                    const token = (typeof localStorage !== 'undefined') ? localStorage.getItem('auth_token') : null;
-                    if (token && cardId) {
-                        const resp = await fetch(`${base}/api/cards/${encodeURIComponent(cardId)}`, {
-                            headers: { 'Authorization': `Bearer ${token}` }
-                        });
+            // SEGUNDO: Buscar na API (autenticada ou pública) ANTES do CardsManager
+            try {
+                const base = (window.APP_CONFIG && window.APP_CONFIG.API_BASE_URL)
+                    || (window.location.hostname.endsWith('vercel.app') ? 'https://alleged-giralda-visitavirtual-e8216580.koyeb.app' : 'http://localhost:5000');
+                const token = (typeof localStorage !== 'undefined') ? localStorage.getItem('auth_token') : null;
+                if (cardId) {
+                    // 2A) Tentar autenticado
+                    if (token) {
+                        const resp = await fetch(`${base}/api/cards/${encodeURIComponent(cardId)}`, { headers: { 'Authorization': `Bearer ${token}` } });
                         if (resp.ok) {
                             const json = await resp.json();
                             const c = json.data || json;
@@ -570,21 +569,36 @@
                                         phone: c.phone || ''
                                     },
                                     image: c.image || null,
-                                    design: {
-                                        primaryColor: c.color || '#00BFFF',
-                                        theme: c.theme || 'modern'
-                                    },
-                                    links: (c.links || []).map(l => ({ label: l.title || (l.type || 'link'), url: l.url, type: l.type || 'custom', color: l.color || c.color || '#00BFFF' }))
+                                    design: { primaryColor: c.color || '#00BFFF', theme: c.theme || 'modern' },
+                                    links: (c.links || []).map(l => ({ label: l.title || (l.type || 'link'), url: l.url, type: l.type || 'custom', color: l.color || c.color || '#00BFFF' })),
+                                    featureSections: (c.featureSections || []).map(s => ({ title: s.title, description: s.description, image: s.image || null, buttonText: s.buttonText, buttonUrl: s.buttonUrl }))
                                 }
                             };
                             renderCard(card);
                             return;
                         }
                     }
-                } catch (e) {
-                    console.warn('⚠️ Falha ao buscar cartão por ID na API:', e);
+                    // 2B) Tentar público por ID
+                    const respPub = await fetch(`${base}/public/cards/${encodeURIComponent(cardId)}`);
+                    if (respPub.ok) {
+                        const json = await respPub.json();
+                        const c = json.data || json;
+                        const card = {
+                            data: {
+                                personalInfo: { fullName: c.name, jobTitle: c.jobTitle || '', description: c.description || '', email: c.email || '', phone: c.phone || '' },
+                                image: c.image || null,
+                                design: { primaryColor: c.color || '#00BFFF', theme: c.theme || 'modern' },
+                                links: (c.links || []).map(l => ({ label: l.title || (l.type || 'link'), url: l.url, type: l.type || 'custom', color: l.color || c.color || '#00BFFF' })),
+                                featureSections: (c.featureSections || []).map(s => ({ title: s.title, description: s.description, image: s.image || null, buttonText: s.buttonText, buttonUrl: s.buttonUrl }))
+                            }
+                        };
+                        renderCard(card);
+                        return;
+                    }
                 }
-            })();
+            } catch (e) {
+                console.warn('⚠️ Falha ao buscar cartão por ID na API:', e);
+            }
 
             // TERCEIRO: Verificar se CardsManager está disponível como fallback
             if (window.CardsManager) {
