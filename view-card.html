@@ -796,13 +796,15 @@
             console.log('📝 HTML gerado:', html);
             container.innerHTML = html;
             console.log('✅ HTML inserido no container');
-            // Disparar métrica de share ao clicar em qualquer link-button (não bloqueante)
+            // Guardar referência do último cartão renderizado
+            try { window.lastRenderedCard = card; } catch (e) {}
+            // Disparar métrica de share ao clicar em links e botões de seção (não bloqueante)
             try {
                 const base = (window.APP_CONFIG && window.APP_CONFIG.API_BASE_URL)
                     || (window.location.hostname.endsWith('vercel.app') ? 'https://alleged-giralda-visitavirtual-e8216580.koyeb.app' : 'http://localhost:5000');
                 const id = window.currentCardId || new URLSearchParams(window.location.search).get('id');
                 if (id) {
-                    container.querySelectorAll('.link-button').forEach(btn => {
+                    container.querySelectorAll('.link-button, .feature-action-btn').forEach(btn => {
                         btn.addEventListener('click', () => {
                             fetch(`${base}/public/cards/${encodeURIComponent(id)}/share`, { method: 'POST' }).catch(()=>{});
                         });
@@ -856,12 +858,18 @@
             
             const urlParams = new URLSearchParams(window.location.search);
             const cardId = urlParams.get('id');
-            const card = window.CardsManager.getCardById(cardId);
+            let card = null;
+            if (window.CardsManager && cardId) {
+                try { card = window.CardsManager.getCardById(cardId); } catch (e) {}
+            }
+            if (!card && window.lastRenderedCard) {
+                card = window.lastRenderedCard;
+            }
             
             console.log('📇 Dados do cartão para vCard:', card);
             
             if (card && card.data && window.Utils && typeof window.Utils.downloadVCard === 'function') {
-                window.CardsManager.incrementContacts(cardId);
+                try { if (window.CardsManager && cardId) window.CardsManager.incrementContacts(cardId); } catch (e) {}
                 window.Utils.downloadVCard(card.data.personalInfo, card.data.image);
                 // Registrar contato no backend público (não bloqueante)
                 try {
