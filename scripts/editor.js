@@ -553,6 +553,11 @@ const renderLinks = () => {
             </div>
         </div>
     `).join('');
+    // Garantir atualização do preview ao editar qualquer campo de link
+    container.querySelectorAll('input,select').forEach(el => {
+        el.addEventListener('input', () => requestPreviewUpdate());
+        el.addEventListener('change', () => requestPreviewUpdate());
+    });
 };
 
 // ==========================================================================
