@@ -665,8 +665,16 @@
                 container.style.background = design.customGradient;
                 console.log('🌈 Aplicando gradiente customizado:', design.customGradient);
             } else {
-                container.className = `card-content ${theme}`;
-                console.log('🎨 Aplicando tema padrão:', theme);
+                // Se o tema salvo não for um dos gradientes conhecidos, usar a cor primária como fundo
+                if (!/^gradient-/.test(theme)) {
+                    const solid = design.primaryColor || '#6366F1';
+                    container.className = 'card-content';
+                    container.style.background = solid;
+                    console.log('🎨 Aplicando cor sólida (fallback):', solid);
+                } else {
+                    container.className = `card-content ${theme}`;
+                    console.log('🎨 Aplicando tema padrão:', theme);
+                }
             }
             
             // Gerar conteúdo
