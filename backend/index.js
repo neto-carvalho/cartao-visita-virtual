@@ -29,6 +29,9 @@ const publicCardRoutes = require('./routes/publicCardRoutes');
 // Criar aplicação Express
 const app = express();
 
+// Rodando atrás de proxy (Koyeb/Reverse proxy): necessário para rate limit e IP correto
+app.set('trust proxy', 1);
+
 // ============================================
 // BOAS PRÁTICAS DE SEGURANÇA
 // ============================================

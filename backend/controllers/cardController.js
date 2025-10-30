@@ -14,9 +14,19 @@ class CardController {
             console.log('👤 Usuário:', req.user);
             
             const userId = req.user.id;
+            // Normalizar links: garantir title e type
+            const normalizedLinks = Array.isArray(req.body.links)
+                ? req.body.links.map(link => ({
+                    title: link.title || link.type || 'link',
+                    url: link.url,
+                    type: link.type || 'custom'
+                }))
+                : [];
+
             const cardData = {
                 userId,
-                ...req.body
+                ...req.body,
+                links: normalizedLinks
             };
 
             console.log('💾 Dados do cartão a serem salvos:', cardData);
