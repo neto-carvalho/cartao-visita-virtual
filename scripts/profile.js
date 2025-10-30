@@ -183,20 +183,18 @@ const loadUserInfo = () => {
 // ========== CARREGAR ESTATÍSTICAS ==========
 const loadStats = async () => {
     try {
-        // Usar cache quando existir; senão, buscar
-        if (!apiCardsCache || apiCardsCache.length === 0) {
-            let cards = await apiService.getCards();
-            apiCardsCache = cards.map(card => ({
-                id: card._id || card.id,
-                name: card.name,
-                isActive: card.isActive,
-                views: card.views || 0,
-                shares: card.shares || 0,
-                contacts: card.contacts || 0,
-                createdAt: card.createdAt,
-                updatedAt: card.updatedAt
-            }));
-        }
+        // Sempre buscar da API para garantir números atualizados
+        let cards = await apiService.getCards();
+        apiCardsCache = cards.map(card => ({
+            id: card._id || card.id,
+            name: card.name,
+            isActive: card.isActive,
+            views: card.views || 0,
+            shares: card.shares || 0,
+            contacts: card.contacts || 0,
+            createdAt: card.createdAt,
+            updatedAt: card.updatedAt
+        }));
         const stats = {
             totalCards: apiCardsCache.length,
             activeCards: apiCardsCache.filter(c => c.isActive).length,
@@ -283,7 +281,8 @@ const loadCards = async (filter = null, searchQuery = null) => {
             createdAt: card.createdAt,
             updatedAt: card.updatedAt,
             views: card.views || 0,
-            shares: card.shares || 0
+            shares: card.shares || 0,
+            contacts: card.contacts || 0
         })).map(c => ({
             ...c,
             isFavorite: (typeof CardsManager !== 'undefined') ? CardsManager.isFavorite(c.id) : false
