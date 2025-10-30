@@ -488,7 +488,8 @@
         
         async function loadPublicCard(publicSlug) {
             try {
-                const base = (window.APP_CONFIG && window.APP_CONFIG.API_BASE_URL) || 'http://localhost:5000';
+                const base = (window.APP_CONFIG && window.APP_CONFIG.API_BASE_URL)
+                    || (window.location.hostname.endsWith('vercel.app') ? 'https://alleged-giralda-visitavirtual-e8216580.koyeb.app' : 'http://localhost:5000');
                 const resp = await fetch(`${base}/public/cards/${encodeURIComponent(publicSlug)}`);
                 const json = await resp.json();
                 if (!resp.ok || !json?.success) {
@@ -560,7 +561,8 @@
             // TERCEIRO: Se não encontrou via CardsManager, tentar buscar na API usando ID (requer token, mas usamos se existir)
             (async () => {
                 try {
-                    const base = (window.APP_CONFIG && window.APP_CONFIG.API_BASE_URL) || 'http://localhost:5000';
+                    const base = (window.APP_CONFIG && window.APP_CONFIG.API_BASE_URL)
+                        || (window.location.hostname.endsWith('vercel.app') ? 'https://alleged-giralda-visitavirtual-e8216580.koyeb.app' : 'http://localhost:5000');
                     const token = (typeof localStorage !== 'undefined') ? localStorage.getItem('auth_token') : null;
                     if (token && cardId) {
                         const resp = await fetch(`${base}/api/cards/${encodeURIComponent(cardId)}`, {
