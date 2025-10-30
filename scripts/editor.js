@@ -543,7 +543,7 @@ const initializeLinksEditor = () => {
 
 const addNewLink = async () => {
     const newLink = {
-        id: Date.now(),
+        id: String(Date.now()),
         type: '',
         title: '',
         url: '',
@@ -559,7 +559,7 @@ const addNewLink = async () => {
 };
 
 const removeLink = async (linkId) => {
-    window.appState.links = window.appState.links.filter(link => link.id !== linkId);
+    window.appState.links = window.appState.links.filter(link => String(link.id) !== String(linkId));
     await saveData();
     renderLinks();
     if (typeof window.updatePreview === 'function') {
@@ -568,7 +568,7 @@ const removeLink = async (linkId) => {
 };
 
 const updateLink = async (linkId, field, value) => {
-    const link = window.appState.links.find(l => l.id === linkId);
+    const link = window.appState.links.find(l => String(l.id) === String(linkId));
     if (link) {
         link[field] = value;
         await saveData();
