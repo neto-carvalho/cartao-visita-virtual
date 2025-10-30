@@ -547,26 +547,7 @@
                 }
             }
             
-            // SEGUNDO: Verificar se CardsManager está disponível
-            if (window.CardsManager) {
-                console.log('✅ CardsManager disponível, buscando cartão...');
-                console.log('📊 Todos os cartões:', window.CardsManager.getAllCards());
-                
-                const card = window.CardsManager.getCardById(cardId);
-                if (card) {
-                    console.log('🎯 Cartão encontrado via CardsManager:', card);
-                    
-                    // Incrementar visualizações
-                    window.CardsManager.incrementViews(cardId);
-                    
-                    // Renderizar cartão
-                    console.log('🎨 Renderizando cartão...');
-                    renderCard(card);
-                    return;
-                }
-            }
-            
-            // TERCEIRO: Se não encontrou via CardsManager, tentar buscar na API usando ID (requer token, mas usamos se existir)
+            // SEGUNDO: Tentar buscar na API usando ID (requer token) ANTES do CardsManager para evitar dados desatualizados
             (async () => {
                 try {
                     const base = (window.APP_CONFIG && window.APP_CONFIG.API_BASE_URL)
@@ -604,6 +585,18 @@
                     console.warn('⚠️ Falha ao buscar cartão por ID na API:', e);
                 }
             })();
+
+            // TERCEIRO: Verificar se CardsManager está disponível como fallback
+            if (window.CardsManager) {
+                console.log('✅ CardsManager disponível, buscando cartão (fallback)...');
+                const card = window.CardsManager.getCardById(cardId);
+                if (card) {
+                    console.log('🎯 Cartão encontrado via CardsManager:', card);
+                    window.CardsManager.incrementViews(cardId);
+                    renderCard(card);
+                    return;
+                }
+            }
 
             // QUARTO: Se ainda não encontrou, tentar localStorage diretamente
             console.log('⚠️ Cartão não encontrado via CardsManager, tentando localStorage...');
