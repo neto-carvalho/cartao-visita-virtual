@@ -508,7 +508,8 @@
                         image: c.image || null,
                         design: {
                             primaryColor: c.color || '#00BFFF',
-                            theme: c.theme || 'modern'
+                            theme: c.theme || 'modern',
+                            customGradient: c.customGradient || null
                         },
                         links: (c.links || []).map(l => ({ label: l.title || (l.type || 'link'), url: l.url, type: l.type || 'custom' }))
                     }

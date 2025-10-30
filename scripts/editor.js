@@ -666,6 +666,7 @@ const saveCard = async () => {
                     image: window.appState.image || null,
                     color: window.appState.design?.primaryColor || '#00BFFF',
                     theme: window.appState.design?.theme || 'modern',
+                    customGradient: window.appState.design?.customGradient || null,
                     links: (window.appState.links || []).map(link => ({
                         title: link.title || link.label || link.type || 'link',
                         url: link.url,
@@ -720,6 +721,7 @@ const saveCard = async () => {
                 image: window.appState.image || null,
                 color: window.appState.design?.primaryColor || '#00BFFF',
                 theme: window.appState.design?.theme || 'modern',
+                customGradient: window.appState.design?.customGradient || null,
                 links: (window.appState.links || []).map(link => ({
                     title: link.title || link.label || link.type || 'link',
                     url: link.url,

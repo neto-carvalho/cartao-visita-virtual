@@ -237,7 +237,8 @@ const loadCards = async (filter = null, searchQuery = null) => {
                 image: card.image || null,
                 design: {
                     primaryColor: card.color || '#00BFFF',
-                    theme: card.theme || 'modern'
+                    theme: card.theme || 'modern',
+                    customGradient: card.customGradient || null
                 },
                 links: (card.links || []).map(link => ({
                     label: link.title,
@@ -473,7 +474,8 @@ window.editCard = async (cardId) => {
                 image: cardFromAPI.image || null,
                 design: {
                     primaryColor: cardFromAPI.color || '#00BFFF',
-                    theme: cardFromAPI.theme || 'modern'
+                    theme: cardFromAPI.theme || 'modern',
+                    customGradient: cardFromAPI.customGradient || null
                 },
                 links: (cardFromAPI.links || []).map(link => ({
                     label: link.title,

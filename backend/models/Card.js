@@ -49,6 +49,11 @@ const cardSchema = new mongoose.Schema({
         type: String,
         default: '#00BFFF'
     },
+    // Gradiente personalizado gerado no editor (CSS string), opcional
+    customGradient: {
+        type: String,
+        default: null
+    },
     theme: {
         type: String,
         // Aceitar qualquer tema definido pelo frontend (gradients diversos ou vazio quando customGradient)
