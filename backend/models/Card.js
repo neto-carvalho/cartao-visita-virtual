@@ -76,6 +76,10 @@ const cardSchema = new mongoose.Schema({
             type: String,
             enum: ['website', 'instagram', 'facebook', 'twitter', 'linkedin', 'youtube', 'whatsapp', 'custom'],
             default: 'custom'
+        },
+        color: {
+            type: String,
+            default: null
         }
     }],
     

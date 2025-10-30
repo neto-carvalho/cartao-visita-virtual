@@ -19,7 +19,8 @@ class CardController {
                 ? req.body.links.map(link => ({
                     title: link.title || link.type || 'link',
                     url: link.url,
-                    type: link.type || 'custom'
+                    type: link.type || 'custom',
+                    color: link.color || req.body.color || '#00BFFF'
                 }))
                 : [];
 
@@ -67,7 +68,17 @@ class CardController {
     async getCards(req, res) {
         try {
             const userId = req.user.id;
-            const cards = await Card.findByUser(userId);
+            let cards = await Card.findByUser(userId);
+
+            // Garantir que cada link tenha cor (compatibilidade retroativa)
+            cards = cards.map((card) => {
+                const obj = card.toObject();
+                obj.links = (obj.links || []).map((l) => ({
+                    ...l,
+                    color: l.color || obj.color || '#00BFFF',
+                }));
+                return obj;
+            });
 
             return res.status(200).json({
                 success: true,
@@ -103,10 +114,17 @@ class CardController {
                 });
             }
 
+            // Compatibilidade retroativa: garantir cor nos links
+            const obj = card.toObject();
+            obj.links = (obj.links || []).map((l) => ({
+                ...l,
+                color: l.color || obj.color || '#00BFFF',
+            }));
+
             return res.status(200).json({
                 success: true,
                 message: 'Cartão obtido com sucesso',
-                data: card
+                data: obj
             });
 
         } catch (error) {
