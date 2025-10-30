@@ -162,12 +162,14 @@ const loadSavedData = () => {
                                     fullName: document.getElementById('fullName'),
                                     jobTitle: document.getElementById('jobTitle'),
                                     description: document.getElementById('description'),
-                                    email: document.getElementById('email')
+                                    email: document.getElementById('email'),
+                                    phone: document.getElementById('phone')
                                 };
                                 if (inputs.fullName) inputs.fullName.value = window.appState.personalInfo.fullName || '';
                                 if (inputs.jobTitle) inputs.jobTitle.value = window.appState.personalInfo.jobTitle || '';
                                 if (inputs.description) inputs.description.value = window.appState.personalInfo.description || '';
                                 if (inputs.email) inputs.email.value = window.appState.personalInfo.email || '';
+                                if (inputs.phone) inputs.phone.value = window.appState.personalInfo.phone || '';
                             } catch (e) { console.warn('⚠️ Falha ao repopular inputs:', e); }
                             // Re-renderizar editores dependentes
                             // Re-renderizar componentes de links
@@ -268,7 +270,8 @@ const initializePersonalInfo = () => {
         fullName: document.getElementById('fullName'),
         jobTitle: document.getElementById('jobTitle'),
         description: document.getElementById('description'),
-        email: document.getElementById('email')
+        email: document.getElementById('email'),
+        phone: document.getElementById('phone')
     };
 
     // Carregar dados existentes
