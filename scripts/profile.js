@@ -1406,6 +1406,7 @@ const handleAvatarUpload = (event) => {
         const user = CardsManager.getUser();
         user.avatar = e.target.result;
         CardsManager.saveUser(user);
+        try { if (typeof apiService !== 'undefined') apiService.updateLocalUser({ avatar: user.avatar }); } catch (err) {}
         loadUserInfo(); // Atualizar avatar na interface
     };
     reader.readAsDataURL(file);
@@ -1436,6 +1437,7 @@ window.updateUserProfile = () => {
     user.email = userEmail;
     
     CardsManager.saveUser(user);
+    try { if (typeof apiService !== 'undefined') apiService.updateLocalUser({ name: user.name, email: user.email }); } catch (err) {}
     loadUserInfo();
     
     alert('Perfil atualizado com sucesso!');

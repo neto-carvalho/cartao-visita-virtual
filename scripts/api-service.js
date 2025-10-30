@@ -99,6 +99,17 @@ class APIService {
         // Sincronizar com CardsManager para o perfil
         this.syncUserToCardsManager(user);
     }
+
+    // Atualizar apenas o objeto de usuário local (sem chamar backend)
+    updateLocalUser(partialUser) {
+        this.user = { ...(this.user || {}), ...(partialUser || {}) };
+        try {
+            localStorage.setItem('user', JSON.stringify(this.user));
+        } catch (e) {}
+        // Re-sincronizar com CardsManager (para refletir na UI)
+        this.syncUserToCardsManager(this.user);
+        return this.user;
+    }
     
     // Sincronizar usuário do login com CardsManager
     syncUserToCardsManager(user) {
