@@ -101,6 +101,10 @@ const cardSchema = new mongoose.Schema({
         type: Number,
         default: 0
     },
+    contacts: {
+        type: Number,
+        default: 0
+    },
     
     // URLs e identificadores
     publicUrl: {

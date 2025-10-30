@@ -521,6 +521,7 @@
                         }))
                     }
                 };
+                window.currentCardId = c._id || c.id || null;
                 renderCard(card);
             } catch (e) {
                 console.error('❌ Erro ao carregar cartão público:', e);
@@ -574,6 +575,7 @@
                                     featureSections: (c.featureSections || []).map(s => ({ title: s.title, description: s.description, image: s.image || null, buttonText: s.buttonText, buttonUrl: s.buttonUrl }))
                                 }
                             };
+                            window.currentCardId = c._id || c.id || null;
                             renderCard(card);
                             return;
                         }
@@ -592,6 +594,7 @@
                                 featureSections: (c.featureSections || []).map(s => ({ title: s.title, description: s.description, image: s.image || null, buttonText: s.buttonText, buttonUrl: s.buttonUrl }))
                             }
                         };
+                        window.currentCardId = c._id || c.id || null;
                         renderCard(card);
                         return;
                     }
@@ -793,6 +796,19 @@
             console.log('📝 HTML gerado:', html);
             container.innerHTML = html;
             console.log('✅ HTML inserido no container');
+            // Disparar métrica de share ao clicar em qualquer link-button (não bloqueante)
+            try {
+                const base = (window.APP_CONFIG && window.APP_CONFIG.API_BASE_URL)
+                    || (window.location.hostname.endsWith('vercel.app') ? 'https://alleged-giralda-visitavirtual-e8216580.koyeb.app' : 'http://localhost:5000');
+                const id = window.currentCardId || new URLSearchParams(window.location.search).get('id');
+                if (id) {
+                    container.querySelectorAll('.link-button').forEach(btn => {
+                        btn.addEventListener('click', () => {
+                            fetch(`${base}/public/cards/${encodeURIComponent(id)}/share`, { method: 'POST' }).catch(()=>{});
+                        });
+                    });
+                }
+            } catch (e) {}
             
             // Atualizar título da página
             document.title = `${personalInfo.fullName || 'Cartão'} | Cartão Virtual`;
@@ -847,6 +863,13 @@
             if (card && card.data && window.Utils && typeof window.Utils.downloadVCard === 'function') {
                 window.CardsManager.incrementContacts(cardId);
                 window.Utils.downloadVCard(card.data.personalInfo, card.data.image);
+                // Registrar contato no backend público (não bloqueante)
+                try {
+                    const base = (window.APP_CONFIG && window.APP_CONFIG.API_BASE_URL)
+                        || (window.location.hostname.endsWith('vercel.app') ? 'https://alleged-giralda-visitavirtual-e8216580.koyeb.app' : 'http://localhost:5000');
+                    const id = window.currentCardId || cardId;
+                    if (id) fetch(`${base}/public/cards/${encodeURIComponent(id)}/contact`, { method: 'POST' }).catch(()=>{});
+                } catch (e) {}
                 console.log('✅ vCard baixado com sucesso');
             } else {
                 console.error('❌ Erro ao salvar contato:', {

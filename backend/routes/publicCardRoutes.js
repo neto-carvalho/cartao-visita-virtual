@@ -7,6 +7,8 @@ const publicCardController = require('../controllers/publicCardController');
 // Rotas públicas (não requerem autenticação)
 router.get('/:id', publicCardController.getPublicCard);              // Obter cartão por ID
 router.get('/url/:publicUrl', publicCardController.getCardByPublicUrl); // Obter cartão por URL pública
+router.post('/:id/share', publicCardController.incrementShare);      // Incrementar compartilhamentos
+router.post('/:id/contact', publicCardController.incrementContact);  // Incrementar contatos
 
 module.exports = router;
 
