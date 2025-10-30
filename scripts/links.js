@@ -20,7 +20,7 @@ const initializeLinks = () => {
     }
 
     // Delegação: qualquer alteração em inputs/seletores atualiza o estado e o preview
-    const linksContainer = document.querySelector('.links-container');
+    const linksContainer = document.querySelector('.links-container') || document.getElementById('linksContainer');
     if (linksContainer && !linksContainer.__linksDelegationBound) {
         const handler = () => {
             updateLinksArray();
@@ -36,7 +36,7 @@ const initializeLinks = () => {
 
 // Carregar links existentes
 const loadExistingLinks = () => {
-    const linksContainer = document.querySelector('.links-container');
+    const linksContainer = document.querySelector('.links-container') || document.getElementById('linksContainer');
     if (!linksContainer) return;
 
     // Limpar container
@@ -56,7 +56,7 @@ const loadExistingLinks = () => {
 
 // Adicionar novo item de link
 const addLinkItem = (linkData = null, index = null) => {
-    const linksContainer = document.querySelector('.links-container');
+    const linksContainer = document.querySelector('.links-container') || document.getElementById('linksContainer');
     if (!linksContainer) return;
 
     const linkItem = document.createElement('div');
