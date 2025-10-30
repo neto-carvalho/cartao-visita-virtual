@@ -58,7 +58,7 @@ app.get('/health', (req, res) => {
     });
 });
 
-// 2. CORS - Configuração restritiva, apenas domínios confiáveis
+// 2. CORS - Configuração restritiva, com suporte a domínios vercel.app
 const corsOptions = {
     origin: function (origin, callback) {
         const allowedOrigins = [
@@ -68,14 +68,20 @@ const corsOptions = {
             'http://localhost:3001',
             'http://127.0.0.1:3001'
         ];
-        
+        const allowedPatterns = [
+            /^https?:\/\/([a-z0-9-]+\.)*vercel\.app$/i
+        ];
+
         // Permitir requisições sem origin (health checks, servidores, Postman, etc)
-        // Em produção, health checks do provedor geralmente não enviam origin
         if (!origin) {
             return callback(null, true);
         }
-        
-        if (allowedOrigins.indexOf(origin) !== -1) {
+
+        const isAllowed =
+            allowedOrigins.includes(origin) ||
+            allowedPatterns.some((re) => re.test(origin));
+
+        if (isAllowed) {
             callback(null, true);
         } else {
             callback(new Error('Não permitido por CORS'));
@@ -86,6 +92,7 @@ const corsOptions = {
     allowedHeaders: ['Content-Type', 'Authorization']
 };
 app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
 
 // 3. Rate Limiting - Limitação de requisições para evitar abuso
 const limiter = rateLimit({
