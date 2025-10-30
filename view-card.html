@@ -511,7 +511,14 @@
                             theme: c.theme || 'modern',
                             customGradient: c.customGradient || null
                         },
-                        links: (c.links || []).map(l => ({ label: l.title || (l.type || 'link'), url: l.url, type: l.type || 'custom' }))
+                        links: (c.links || []).map(l => ({ label: l.title || (l.type || 'link'), url: l.url, type: l.type || 'custom' })),
+                        featureSections: (c.featureSections || []).map(s => ({
+                            title: s.title,
+                            description: s.description,
+                            image: s.image || null,
+                            buttonText: s.buttonText,
+                            buttonUrl: s.buttonUrl
+                        }))
                     }
                 };
                 renderCard(card);

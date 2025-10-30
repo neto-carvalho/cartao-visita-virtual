@@ -26,7 +26,14 @@ class CardController {
             const cardData = {
                 userId,
                 ...req.body,
-                links: normalizedLinks
+                links: normalizedLinks,
+                featureSections: Array.isArray(req.body.featureSections) ? req.body.featureSections.map(sec => ({
+                    title: sec.title || '',
+                    description: sec.description || '',
+                    image: sec.image || null,
+                    buttonText: sec.buttonText || '',
+                    buttonUrl: sec.buttonUrl || ''
+                })) : []
             };
 
             console.log('💾 Dados do cartão a serem salvos:', cardData);

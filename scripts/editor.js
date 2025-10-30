@@ -672,6 +672,13 @@ const saveCard = async () => {
                         url: link.url,
                         type: link.type || 'custom',
                         color: link.color || window.appState.design?.primaryColor || '#00BFFF'
+                    })),
+                    featureSections: (window.appState.featureSections || []).map(sec => ({
+                        title: sec.title || '',
+                        description: sec.description || '',
+                        image: sec.image || null,
+                        buttonText: sec.buttonText || '',
+                        buttonUrl: sec.buttonUrl || ''
                     }))
                 };
                 
@@ -727,6 +734,13 @@ const saveCard = async () => {
                     url: link.url,
                     type: link.type || 'custom',
                     color: link.color || window.appState.design?.primaryColor || '#00BFFF'
+                })),
+                featureSections: (window.appState.featureSections || []).map(sec => ({
+                    title: sec.title || '',
+                    description: sec.description || '',
+                    image: sec.image || null,
+                    buttonText: sec.buttonText || '',
+                    buttonUrl: sec.buttonUrl || ''
                 }))
             };
             

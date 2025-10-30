@@ -79,6 +79,15 @@ const cardSchema = new mongoose.Schema({
         }
     }],
     
+    // Seções de destaque opcionais (cards de conteúdo)
+    featureSections: [{
+        title: { type: String, trim: true },
+        description: { type: String, trim: true },
+        image: { type: String, default: null },
+        buttonText: { type: String, trim: true },
+        buttonUrl: { type: String, trim: true }
+    }],
+    
     // Contadores (estatísticas)
     views: {
         type: Number,

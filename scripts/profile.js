@@ -240,6 +240,13 @@ const loadCards = async (filter = null, searchQuery = null) => {
                     theme: card.theme || 'modern',
                     customGradient: card.customGradient || null
                 },
+                featureSections: (card.featureSections || []).map(s => ({
+                    title: s.title,
+                    description: s.description,
+                    image: s.image || null,
+                    buttonText: s.buttonText,
+                    buttonUrl: s.buttonUrl
+                })),
                 links: (card.links || []).map(link => ({
                     label: link.title,
                     url: link.url,
@@ -477,6 +484,13 @@ window.editCard = async (cardId) => {
                     theme: cardFromAPI.theme || 'modern',
                     customGradient: cardFromAPI.customGradient || null
                 },
+                featureSections: (cardFromAPI.featureSections || []).map(s => ({
+                    title: s.title,
+                    description: s.description,
+                    image: s.image || null,
+                    buttonText: s.buttonText,
+                    buttonUrl: s.buttonUrl
+                })),
                 links: (cardFromAPI.links || []).map(link => ({
                     label: link.title,
                     url: link.url,
