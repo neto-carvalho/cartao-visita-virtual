@@ -463,20 +463,61 @@
                 
                 const urlParams = new URLSearchParams(window.location.search);
                 const cardId = urlParams.get('id');
+                const publicSlug = urlParams.get('public');
                 
                 console.log('🔍 Card ID da URL:', cardId);
+                if (publicSlug) {
+                    console.log('🔍 Public slug da URL:', publicSlug);
+                }
                 
-                if (!cardId) {
-                    console.error('❌ Card ID não encontrado na URL');
+                if (!cardId && !publicSlug) {
+                    console.error('❌ Card ID / public slug não encontrado na URL');
                     showError('Cartão não encontrado', 'O link está incorreto ou o cartão não existe.');
                     return;
                 }
                 
                 // Tentar carregar o cartão
-                loadCardData(cardId);
+                if (publicSlug) {
+                    loadPublicCard(publicSlug);
+                } else {
+                    loadCardData(cardId);
+                }
             }, 100); // Delay para garantir que scripts carreguem
         });
         
+        async function loadPublicCard(publicSlug) {
+            try {
+                const base = (window.APP_CONFIG && window.APP_CONFIG.API_BASE_URL) || 'http://localhost:5000';
+                const resp = await fetch(`${base}/public/cards/${encodeURIComponent(publicSlug)}`);
+                const json = await resp.json();
+                if (!resp.ok || !json?.success) {
+                    throw new Error(json?.message || 'Falha ao carregar cartão público');
+                }
+                const c = json.data;
+                const card = {
+                    data: {
+                        personalInfo: {
+                            fullName: c.name,
+                            jobTitle: c.jobTitle || '',
+                            description: c.description || '',
+                            email: c.email || '',
+                            phone: c.phone || ''
+                        },
+                        image: c.image || null,
+                        design: {
+                            primaryColor: c.color || '#00BFFF',
+                            theme: c.theme || 'modern'
+                        },
+                        links: (c.links || []).map(l => ({ label: l.title || (l.type || 'link'), url: l.url, type: l.type || 'custom' }))
+                    }
+                };
+                renderCard(card);
+            } catch (e) {
+                console.error('❌ Erro ao carregar cartão público:', e);
+                showError('Cartão não encontrado', 'Este cartão não existe ou foi removido.');
+            }
+        }
+
         // Função para carregar dados do cartão
         function loadCardData(cardId) {
             console.log('📂 Tentando carregar dados do cartão:', cardId);

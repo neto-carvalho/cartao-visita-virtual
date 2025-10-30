@@ -225,6 +225,7 @@ const loadCards = async (filter = null, searchQuery = null) => {
         cards = cards.map(card => ({
             id: card._id || card.id,
             name: card.name,
+            publicUrl: card.publicUrl,
             data: {
                 personalInfo: {
                     fullName: card.name,
@@ -408,7 +409,7 @@ const createCardHTML = (card) => {
                     </div>
                 </div>
                 <div class="card-actions">
-                    <button class="card-action-btn primary" onclick="viewCard('${card.id}')">
+                    <button class="card-action-btn primary" onclick="viewCard('${card.id}', '${card.publicUrl || ''}')">
                         <i class="fas fa-eye"></i>
                         Ver
                     </button>
@@ -434,10 +435,14 @@ const attachCardEventListeners = () => {
 };
 
 // ========== AÇÕES DOS CARTÕES ==========
-window.viewCard = (cardId) => {
-    console.log('👁️ Visualizar cartão:', cardId);
-    CardsManager.incrementViews(cardId);
-    window.open(`view-card.html?id=${cardId}`, '_blank');
+window.viewCard = (cardId, publicUrl = '') => {
+    console.log('👁️ Visualizar cartão:', cardId, publicUrl);
+    try { CardsManager.incrementViews(cardId); } catch (e) {}
+    if (publicUrl) {
+        window.open(`view-card.html?public=${encodeURIComponent(publicUrl)}`, '_blank');
+    } else {
+        window.open(`view-card.html?id=${cardId}`, '_blank');
+    }
 };
 
 window.editCard = async (cardId) => {
