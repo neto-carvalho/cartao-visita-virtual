@@ -13,6 +13,21 @@ const initializeFeatures = () => {
         console.error('❌ Botão addFeatureBtn não encontrado!');
     }
     
+    // Delegação: remover seção mesmo após re-renderizações
+    const containerEl = document.getElementById('featuresContainer');
+    if (containerEl && !containerEl.__featuresDelegationBound) {
+        containerEl.addEventListener('click', (e) => {
+            const btn = e.target.closest('.remove-feature');
+            if (btn) {
+                const idx = parseInt(btn.dataset.index, 10);
+                if (!Number.isNaN(idx)) {
+                    removeFeatureSection(idx);
+                }
+            }
+        });
+        containerEl.__featuresDelegationBound = true;
+    }
+
     // Carregar seções salvas (sempre re-renderizar do zero para evitar duplicação)
     const container = document.getElementById('featuresContainer');
     if (container) {
