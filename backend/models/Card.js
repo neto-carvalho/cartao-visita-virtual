@@ -51,7 +51,7 @@ const cardSchema = new mongoose.Schema({
     },
     theme: {
         type: String,
-        enum: ['modern', 'classic', 'minimalist', 'colorful', 'gradient-pink', 'gradient-blue', 'gradient-purple', 'gradient-green'],
+        // Aceitar qualquer tema definido pelo frontend (gradients diversos ou vazio quando customGradient)
         default: 'modern'
     },
     
