@@ -43,13 +43,14 @@ const loadExistingLinks = () => {
     linksContainer.innerHTML = '';
 
     // Adicionar links existentes
-    if (appState.links && appState.links.length > 0) {
+    if (Array.isArray(appState.links) && appState.links.length > 0) {
         appState.links.forEach((link, index) => {
             addLinkItem(link, index);
         });
     } else {
-        // Adicionar um link vazio por padrão
-        addLinkItem();
+        // Não criar item vazio automaticamente quando editando um cartão
+        // Apenas exiba vazio se realmente não houver links
+        // addLinkItem();
     }
 };
 
@@ -183,14 +184,14 @@ const addLinkEventListeners = (linkItem) => {
 
 // Atualizar array de links
 const updateLinksArray = () => {
-    const linkItems = document.querySelectorAll('.link-item');
+    const linkItems = document.querySelectorAll('.links-container .link-item, #linksContainer .link-item');
     const links = [];
 
     linkItems.forEach(item => {
         const type = item.querySelector('.link-type')?.value || 'custom';
         const title = item.querySelector('.link-title')?.value || '';
         const url = item.querySelector('.link-url')?.value || '';
-        const color = item.querySelector('.link-button-color')?.value || '#00BFFF';
+        const color = item.querySelector('.link-button-color')?.value || (appState?.design?.primaryColor || '#00BFFF');
 
         // Adicionar mesmo que parcial; preview lida com placeholders
         links.push({ type, title, url, color });
@@ -198,7 +199,9 @@ const updateLinksArray = () => {
 
     // Atualizar estado
     appState.links = links;
-    Utils.saveToStorage(appState);
+    if (typeof Utils?.saveToStorage === 'function') {
+        Utils.saveToStorage(appState);
+    }
 
     // Atualizar preview
     if (typeof updatePreview === 'function') {
@@ -212,7 +215,9 @@ window.removeLinkItem = (button) => {
     if (linkItem) {
         linkItem.remove();
         updateLinksArray();
-        Utils.showNotification('Link removido');
+        if (typeof Utils?.showNotification === 'function') {
+            Utils.showNotification('Link removido');
+        }
     }
 };
 
