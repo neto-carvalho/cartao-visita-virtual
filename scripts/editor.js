@@ -667,9 +667,10 @@ const saveCard = async () => {
                     color: window.appState.design?.primaryColor || '#00BFFF',
                     theme: window.appState.design?.theme || 'modern',
                     links: (window.appState.links || []).map(link => ({
-                        title: link.label,
+                        title: link.title || link.label || link.type || 'link',
                         url: link.url,
-                        type: link.type || 'custom'
+                        type: link.type || 'custom',
+                        color: link.color || window.appState.design?.primaryColor || '#00BFFF'
                     }))
                 };
                 
@@ -720,9 +721,10 @@ const saveCard = async () => {
                 color: window.appState.design?.primaryColor || '#00BFFF',
                 theme: window.appState.design?.theme || 'modern',
                 links: (window.appState.links || []).map(link => ({
-                    title: link.label,
+                    title: link.title || link.label || link.type || 'link',
                     url: link.url,
-                    type: link.type || 'custom'
+                    type: link.type || 'custom',
+                    color: link.color || window.appState.design?.primaryColor || '#00BFFF'
                 }))
             };
             
