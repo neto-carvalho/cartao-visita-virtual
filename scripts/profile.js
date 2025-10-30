@@ -492,9 +492,10 @@ window.editCard = async (cardId) => {
                     buttonUrl: s.buttonUrl
                 })),
                 links: (cardFromAPI.links || []).map(link => ({
-                    label: link.title,
+                    title: link.title,
                     url: link.url,
-                    type: link.type || 'custom'
+                    type: link.type || 'custom',
+                    color: link.color || (cardFromAPI.color || '#00BFFF')
                 }))
             }
         };

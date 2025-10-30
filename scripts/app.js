@@ -525,9 +525,10 @@ const loadCardForEditing = async (cardId) => {
                 },
                 links: (card.links || []).map(link => ({
                     id: link._id || Math.random().toString(36).substring(7),
-                    label: link.title || '',
+                    title: link.title || '',
                     url: link.url || '',
-                    type: link.type || 'custom'
+                    type: link.type || 'custom',
+                    color: link.color || (card.color || '#00BFFF')
                 })),
                 featureSections: (card.featureSections || []).map(section => ({
                     title: section.title || '',
