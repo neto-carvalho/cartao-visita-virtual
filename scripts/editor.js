@@ -591,7 +591,7 @@ const renderLinks = () => {
         <div class="link-item bg-gray-50 border border-gray-200 rounded-lg p-4">
             <div class="flex justify-between items-center mb-4">
                 <select class="link-type px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
-                        onchange="updateLink(${link.id}, 'type', this.value)">
+                        onchange="updateLink('${link.id}', 'type', this.value)">
                     <option value="">Selecione o tipo</option>
                     <option value="instagram" ${link.type === 'instagram' ? 'selected' : ''}>Instagram</option>
                     <option value="tiktok" ${link.type === 'tiktok' ? 'selected' : ''}>TikTok</option>
@@ -606,7 +606,7 @@ const renderLinks = () => {
                     <option value="website" ${link.type === 'website' ? 'selected' : ''}>Website</option>
                     <option value="custom" ${link.type === 'custom' ? 'selected' : ''}>Personalizado</option>
                 </select>
-                <button onclick="removeLink(${link.id})" class="ml-2 p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-colors">
+                <button onclick="removeLink('${link.id}')" class="ml-2 p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-colors" type="button">
                     <i class="fas fa-trash"></i>
                 </button>
             </div>
@@ -614,16 +614,16 @@ const renderLinks = () => {
                 <input type="text" class="link-title w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
                        placeholder="Título do link (ex: Meu Instagram)" 
                        value="${link.title}"
-                       oninput="updateLink(${link.id}, 'title', this.value)">
+                       oninput="updateLink('${link.id}', 'title', this.value)">
                 <input type="url" class="link-url w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
                        placeholder="https://..." 
                        value="${link.url}"
-                       oninput="updateLink(${link.id}, 'url', this.value)">
+                       oninput="updateLink('${link.id}', 'url', this.value)">
                 <div class="flex items-center space-x-3">
                     <label class="text-sm font-medium text-gray-700">Cor do botão:</label>
                     <input type="color" class="link-button-color w-12 h-8 border border-gray-300 rounded cursor-pointer" 
                            value="${link.color}"
-                           onchange="updateLink(${link.id}, 'color', this.value)">
+                           onchange="updateLink('${link.id}', 'color', this.value)">
                 </div>
             </div>
         </div>
