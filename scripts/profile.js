@@ -142,7 +142,7 @@ const loadUserInfo = () => {
                 id: authUser.id || `user_${Date.now()}`,
                 name: authUser.name,
                 email: authUser.email,
-                avatar: null,
+                avatar: authUser.avatar || user.avatar || null,
                 createdAt: authUser.createdAt || new Date().toISOString()
             });
             // Usar o usuário autenticado
@@ -150,7 +150,7 @@ const loadUserInfo = () => {
                 id: authUser.id || `user_${Date.now()}`,
                 name: authUser.name,
                 email: authUser.email,
-                avatar: null
+                avatar: authUser.avatar || user.avatar || null
             };
             console.log('✅ Usuário sincronizado:', user.name, user.email);
         }
