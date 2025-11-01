@@ -921,7 +921,49 @@
             }
             
             console.log('📝 HTML gerado:', html);
+            
+            // Salvar botão de compartilhamento antes de substituir o conteúdo
+            const shareButton = container.querySelector('.share-button');
+            const shareDropdown = container.querySelector('.share-dropdown');
+            const shareButtonHTML = shareButton ? shareButton.outerHTML : '';
+            const shareDropdownHTML = shareDropdown ? shareDropdown.outerHTML : '';
+            
+            // Inserir HTML do cartão
             container.innerHTML = html;
+            
+            // Restaurar botão de compartilhamento após renderização
+            if (shareButtonHTML || shareDropdownHTML) {
+                const firstChild = container.firstElementChild;
+                if (shareButtonHTML) {
+                    container.insertAdjacentHTML('afterbegin', shareButtonHTML);
+                }
+                if (shareDropdownHTML) {
+                    container.insertAdjacentHTML('afterbegin', shareDropdownHTML);
+                }
+            } else {
+                // Se não existir, adicionar o botão pela primeira vez
+                const shareBtnHTML = `
+                    <button class="share-button" id="shareButton" onclick="toggleShareMenu()" title="Compartilhar">
+                        <i class="fas fa-share-alt"></i>
+                    </button>
+                    <div class="share-dropdown" id="shareDropdown">
+                        <div class="share-dropdown-item whatsapp" onclick="shareViaWhatsApp()">
+                            <i class="fab fa-whatsapp"></i>
+                            <span>WhatsApp</span>
+                        </div>
+                        <div class="share-dropdown-item email" onclick="shareViaEmail()">
+                            <i class="fas fa-envelope"></i>
+                            <span>E-mail</span>
+                        </div>
+                        <div class="share-dropdown-item qrcode" onclick="showQRCode()">
+                            <i class="fas fa-qrcode"></i>
+                            <span>QR Code</span>
+                        </div>
+                    </div>
+                `;
+                container.insertAdjacentHTML('afterbegin', shareBtnHTML);
+            }
+            
             console.log('✅ HTML inserido no container');
             // Guardar referência do último cartão renderizado
             try { window.lastRenderedCard = card; } catch (e) {}
