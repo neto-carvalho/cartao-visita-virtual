@@ -46,6 +46,99 @@
             word-wrap: break-word;
             overflow-wrap: break-word;
             hyphens: auto;
+            position: relative;
+        }
+        
+        /* Botão de compartilhamento */
+        .share-button {
+            position: absolute;
+            top: 1rem;
+            left: 1rem;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            font-size: 1.25rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            z-index: 100;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+        
+        .share-button:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+        }
+        
+        .share-button.active {
+            background: rgba(255, 255, 255, 0.35);
+        }
+        
+        /* Dropdown de compartilhamento */
+        .share-dropdown {
+            position: absolute;
+            top: 60px;
+            left: 0;
+            background: white;
+            border-radius: 1rem;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+            min-width: 200px;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: all 0.3s ease;
+            z-index: 101;
+            overflow: hidden;
+        }
+        
+        .share-dropdown.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+        
+        .share-dropdown-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 1rem 1.25rem;
+            color: #374151;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border-bottom: 1px solid #F3F4F6;
+        }
+        
+        .share-dropdown-item:last-child {
+            border-bottom: none;
+        }
+        
+        .share-dropdown-item:hover {
+            background: #F9FAFB;
+        }
+        
+        .share-dropdown-item i {
+            font-size: 1.25rem;
+            width: 24px;
+            text-align: center;
+        }
+        
+        .share-dropdown-item.whatsapp i {
+            color: #25D366;
+        }
+        
+        .share-dropdown-item.email i {
+            color: #3B82F6;
+        }
+        
+        .share-dropdown-item.qrcode i {
+            color: #8B5CF6;
         }
 
         .profile-image {
@@ -371,6 +464,19 @@
                 padding: 2rem 1.5rem 1.5rem;
                 min-height: auto;
             }
+            
+            .share-button {
+                width: 40px;
+                height: 40px;
+                font-size: 1rem;
+                top: 0.75rem;
+                left: 0.75rem;
+            }
+            
+            .share-dropdown {
+                top: 50px;
+                min-width: 180px;
+            }
 
             .profile-image {
                 width: 100px;
@@ -432,13 +538,33 @@
 <body>
     <div class="card-container">
         <div class="card-content" id="cardContent">
+            <!-- Botão de compartilhamento -->
+            <button class="share-button" id="shareButton" onclick="toggleShareMenu()" title="Compartilhar">
+                <i class="fas fa-share-alt"></i>
+            </button>
+            
+            <!-- Menu dropdown de compartilhamento -->
+            <div class="share-dropdown" id="shareDropdown">
+                <div class="share-dropdown-item whatsapp" onclick="shareViaWhatsApp()">
+                    <i class="fab fa-whatsapp"></i>
+                    <span>WhatsApp</span>
+                </div>
+                <div class="share-dropdown-item email" onclick="shareViaEmail()">
+                    <i class="fas fa-envelope"></i>
+                    <span>E-mail</span>
+                </div>
+                <div class="share-dropdown-item qrcode" onclick="showQRCode()">
+                    <i class="fas fa-qrcode"></i>
+                    <span>QR Code</span>
+                </div>
+            </div>
+            
             <!-- Card content will be loaded here -->
             <div style="text-align: center; padding: 3rem 2rem;">
                 <div style="font-size: 3rem; margin-bottom: 1rem;">
                     <i class="fas fa-spinner fa-spin"></i>
                 </div>
                 <p>Carregando cartão...</p>
-            </div>
         </div>
         <div class="footer">
             <a href="index.html">
@@ -890,8 +1016,273 @@
             }
         }
         
+        // ========== FUNÇÕES DE COMPARTILHAMENTO ==========
+        
+        // Alternar menu de compartilhamento
+        function toggleShareMenu() {
+            const dropdown = document.getElementById('shareDropdown');
+            const button = document.getElementById('shareButton');
+            
+            if (dropdown && button) {
+                const isVisible = dropdown.classList.contains('show');
+                
+                if (isVisible) {
+                    dropdown.classList.remove('show');
+                    button.classList.remove('active');
+                } else {
+                    dropdown.classList.add('show');
+                    button.classList.add('active');
+                }
+            }
+        }
+        
+        // Fechar menu ao clicar fora
+        document.addEventListener('click', (e) => {
+            const dropdown = document.getElementById('shareDropdown');
+            const button = document.getElementById('shareButton');
+            
+            if (dropdown && button && !dropdown.contains(e.target) && !button.contains(e.target)) {
+                dropdown.classList.remove('show');
+                button.classList.remove('active');
+            }
+        });
+        
+        // Obter URL atual do cartão para compartilhamento
+        function getShareUrl() {
+            return window.location.href;
+        }
+        
+        // Obter nome do cartão para compartilhamento
+        function getCardName() {
+            try {
+                if (window.lastRenderedCard && window.lastRenderedCard.data) {
+                    return window.lastRenderedCard.data.personalInfo?.fullName || 'Cartão de Visita';
+                }
+            } catch (e) {}
+            return document.title.replace(' | Cartão Virtual', '') || 'Cartão de Visita';
+        }
+        
+        // Compartilhar via WhatsApp
+        function shareViaWhatsApp() {
+            const url = getShareUrl();
+            const cardName = getCardName();
+            const text = `Confira meu cartão de visita digital: ${cardName}`;
+            const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(text + '\\n' + url)}`;
+            window.open(whatsappUrl, '_blank');
+            
+            // Fechar menu
+            toggleShareMenu();
+            
+            // Registrar share (não bloqueante)
+            try {
+                const base = (window.APP_CONFIG && window.APP_CONFIG.API_BASE_URL)
+                    || (window.location.hostname.endsWith('vercel.app') ? 'https://alleged-giralda-visitavirtual-e8216580.koyeb.app' : 'http://localhost:5000');
+                const id = window.currentCardId || new URLSearchParams(window.location.search).get('id');
+                if (id) {
+                    fetch(`${base}/public/cards/${encodeURIComponent(id)}/share`, { method: 'POST' }).catch(()=>{});
+                }
+            } catch (e) {}
+        }
+        
+        // Compartilhar via E-mail
+        function shareViaEmail() {
+            const url = getShareUrl();
+            const cardName = getCardName();
+            const subject = `Cartão de Visita Digital - ${cardName}`;
+            const body = `Olá!\\n\\nGostaria de compartilhar meu cartão de visita digital com você.\\n\\nAcesse: ${url}\\n\\nAtenciosamente`;
+            const mailtoUrl = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+            window.location.href = mailtoUrl;
+            
+            // Fechar menu
+            toggleShareMenu();
+            
+            // Registrar share (não bloqueante)
+            try {
+                const base = (window.APP_CONFIG && window.APP_CONFIG.API_BASE_URL)
+                    || (window.location.hostname.endsWith('vercel.app') ? 'https://alleged-giralda-visitavirtual-e8216580.koyeb.app' : 'http://localhost:5000');
+                const id = window.currentCardId || new URLSearchParams(window.location.search).get('id');
+                if (id) {
+                    fetch(`${base}/public/cards/${encodeURIComponent(id)}/share`, { method: 'POST' }).catch(()=>{});
+                }
+            } catch (e) {}
+        }
+        
+        // Mostrar QR Code
+        function showQRCode() {
+            const url = getShareUrl();
+            const cardName = getCardName();
+            
+            // Criar modal de QR Code
+            const modal = document.createElement('div');
+            modal.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0, 0, 0, 0.7);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                z-index: 10000;
+                opacity: 0;
+                transition: opacity 0.3s ease;
+                padding: 1rem;
+            `;
+            
+            modal.innerHTML = `
+                <div style="
+                    background: white;
+                    border-radius: 1.5rem;
+                    max-width: 400px;
+                    width: 100%;
+                    padding: 2rem;
+                    transform: scale(0.9);
+                    transition: transform 0.3s ease;
+                ">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                        <h3 style="font-size: 1.25rem; font-weight: 700; color: #111827;">
+                            <i class="fas fa-qrcode" style="color: #8B5CF6; margin-right: 0.5rem;"></i>
+                            QR Code
+                        </h3>
+                        <button onclick="this.closest('.qr-modal').remove()" style="
+                            width: 36px;
+                            height: 36px;
+                            border-radius: 50%;
+                            border: none;
+                            background: #F3F4F6;
+                            color: #6B7280;
+                            cursor: pointer;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            font-size: 1.25rem;
+                        "><i class="fas fa-times"></i></button>
+                    </div>
+                    <div id="qrcode-view-container" style="text-align: center; margin-bottom: 1rem;">
+                        <div style="text-align: center; padding: 2rem;">
+                            <i class="fas fa-spinner fa-spin" style="font-size: 2rem; color: #8B5CF6;"></i>
+                            <p style="margin-top: 1rem; color: #6B7280;">Gerando QR Code...</p>
+                        </div>
+                    </div>
+                    <p style="text-align: center; color: #6B7280; font-size: 0.875rem; margin-bottom: 1rem;">
+                        Escaneie para visualizar o cartão
+                    </p>
+                    <button onclick="downloadQRCodeFromView()" style="
+                        width: 100%;
+                        padding: 0.75rem;
+                        background: #8B5CF6;
+                        color: white;
+                        border: none;
+                        border-radius: 0.5rem;
+                        font-weight: 600;
+                        cursor: pointer;
+                        transition: all 0.3s ease;
+                    " onmouseover="this.style.background='#7C3AED'" onmouseout="this.style.background='#8B5CF6'">
+                        <i class="fas fa-download"></i> Baixar QR Code
+                    </button>
+                </div>
+            `;
+            
+            modal.className = 'qr-modal';
+            document.body.appendChild(modal);
+            
+            // Animar entrada
+            requestAnimationFrame(() => {
+                modal.style.opacity = '1';
+                modal.querySelector('div > div').style.transform = 'scale(1)';
+            });
+            
+            // Gerar QR Code
+            generateQRCodeForView(url);
+            
+            // Fechar menu
+            toggleShareMenu();
+            
+            // Fechar ao clicar no overlay
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.remove();
+                }
+            });
+        }
+        
+        // Gerar QR Code para visualização
+        function generateQRCodeForView(url) {
+            const container = document.getElementById('qrcode-view-container');
+            if (!container) return;
+            
+            try {
+                // Verificar se QRCode está disponível
+                if (typeof QRCode !== 'undefined') {
+                    container.innerHTML = '';
+                    new QRCode(container, {
+                        text: url,
+                        width: 200,
+                        height: 200,
+                        colorDark: '#000000',
+                        colorLight: '#ffffff',
+                        correctLevel: QRCode.CorrectLevel.M
+                    });
+                } else {
+                    // Fallback: usar API
+                    const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(url)}`;
+                    const img = document.createElement('img');
+                    img.src = qrApiUrl;
+                    img.alt = 'QR Code';
+                    img.style.cssText = 'width: 200px; height: 200px; border-radius: 0.5rem;';
+                    container.innerHTML = '';
+                    container.appendChild(img);
+                }
+            } catch (error) {
+                console.error('Erro ao gerar QR Code:', error);
+                container.innerHTML = `
+                    <div style="padding: 2rem; color: #DC2626;">
+                        <i class="fas fa-exclamation-circle" style="font-size: 2rem; margin-bottom: 0.5rem;"></i>
+                        <p>Erro ao gerar QR Code</p>
+                        <button onclick="window.open('${url}', '_blank')" style="
+                            margin-top: 1rem;
+                            padding: 0.5rem 1rem;
+                            background: #3B82F6;
+                            color: white;
+                            border: none;
+                            border-radius: 0.375rem;
+                            cursor: pointer;
+                        ">Abrir Link</button>
+                    </div>
+                `;
+            }
+        }
+        
+        // Baixar QR Code
+        function downloadQRCodeFromView() {
+            const container = document.getElementById('qrcode-view-container');
+            if (!container) return;
+            
+            const canvas = container.querySelector('canvas');
+            if (canvas) {
+                const link = document.createElement('a');
+                link.download = 'qrcode-cartao.png';
+                link.href = canvas.toDataURL();
+                link.click();
+            } else {
+                const img = container.querySelector('img');
+                if (img) {
+                    const link = document.createElement('a');
+                    link.download = 'qrcode-cartao.png';
+                    link.href = img.src;
+                    link.click();
+                } else {
+                    alert('QR Code não disponível para download.');
+                }
+            }
+        }
+        
         // getSocialIcon já está disponível globalmente via app.js
     </script>
+    
+    <!-- QRCode.js para gerar QR Codes -->
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
 </body>
 </html>
 
