@@ -106,6 +106,13 @@ const loadSavedData = () => {
                     featureSections: Array.isArray(parsed.featureSections) ? parsed.featureSections : (window.appState.featureSections || [])
                 });
                 console.log('✅ Estado do editor atualizado a partir do localStorage');
+                // Exibir imagem se existir
+                if (window.appState.image) {
+                    // Aguardar um pouco para garantir que o DOM está pronto
+                    setTimeout(() => {
+                        showImagePreview(window.appState.image);
+                    }, 100);
+                }
                 if (typeof window.updatePreview === 'function') {
                     window.updatePreview(true);
                 }
@@ -181,6 +188,10 @@ const loadSavedData = () => {
                             if (typeof window.initializeFeatures === 'function') {
                                 window.initializeFeatures();
                             }
+                            // Exibir imagem se existir
+                            if (window.appState.image) {
+                                showImagePreview(window.appState.image);
+                            }
                             requestPreviewUpdate(true);
                             console.log('✅ Dados do cartão completados via API');
                         }
@@ -194,6 +205,10 @@ const loadSavedData = () => {
         // Aguardar um pouco para garantir que os dados foram carregados
         setTimeout(() => {
             console.log('📋 Dados após timeout:', window.appState);
+            // Exibir imagem se existir
+            if (window.appState.image) {
+                showImagePreview(window.appState.image);
+            }
             if (window.appState.personalInfo && window.appState.personalInfo.fullName) {
                 console.log('✅ Dados do cartão carregados corretamente');
                 if (typeof window.updatePreview === 'function') {
@@ -208,6 +223,10 @@ const loadSavedData = () => {
                         console.log('🔄 Recarregando dados do cartão...');
                         Object.assign(window.appState, card.data);
                         console.log('✅ Dados recarregados:', window.appState);
+                        // Exibir imagem se existir
+                        if (window.appState.image) {
+                            showImagePreview(window.appState.image);
+                        }
                         if (typeof window.updatePreview === 'function') {
                             window.updatePreview(true);
                         }
@@ -415,9 +434,18 @@ const initializeImageUpload = () => {
 
     if (!uploadArea || !imageInput || !imagePreview) return;
 
-    // Carregar imagem existente
+    // Carregar imagem existente (com pequeno delay para garantir DOM pronto)
     if (window.appState.image) {
-        showImagePreview(window.appState.image);
+        setTimeout(() => {
+            showImagePreview(window.appState.image);
+        }, 150);
+    } else {
+        // Verificar novamente após um breve delay (caso imagem seja carregada assincronamente)
+        setTimeout(() => {
+            if (window.appState.image) {
+                showImagePreview(window.appState.image);
+            }
+        }, 600);
     }
 
     // Click para abrir seletor de arquivo
@@ -495,12 +523,26 @@ const showImagePreview = (imageSrc) => {
     const imagePreview = document.getElementById('imagePreview');
     const previewImage = document.getElementById('previewImage');
 
-    if (!imagePreview || !previewImage) return;
+    if (!imagePreview || !previewImage) {
+        console.warn('⚠️ Elementos de preview de imagem não encontrados');
+        return;
+    }
+
+    if (!imageSrc) {
+        console.warn('⚠️ Nenhuma imagem fornecida para preview');
+        return;
+    }
 
     previewImage.src = imageSrc;
     imagePreview.classList.remove('hidden');
-    uploadArea.classList.add('hidden');
+    if (uploadArea) {
+        uploadArea.classList.add('hidden');
+    }
+    console.log('✅ Imagem exibida no campo de upload');
 };
+
+// Tornar função acessível globalmente para debug
+window.showImagePreview = showImagePreview;
 
 // Função global para remover imagem
 window.removeImage = async () => {
