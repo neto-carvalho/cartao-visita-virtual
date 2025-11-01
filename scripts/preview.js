@@ -21,7 +21,14 @@ const updatePreview = (resetScroll = false) => {
     const previewContainer = document.getElementById('cardPreview');
     if (!previewContainer) return;
 
-    const { personalInfo, design, image, links, featureSections, showSaveContactButton } = appState;
+    // Usar window.appState para garantir acesso correto ao estado global
+    const currentState = window.appState || appState;
+    if (!currentState || !currentState.personalInfo || !currentState.design) {
+        console.warn('⚠️ appState não disponível ou incompleto');
+        return;
+    }
+
+    const { personalInfo, design, image, links, featureSections, showSaveContactButton } = currentState;
     
     // Salvar posição atual do scroll
     const currentScrollPosition = previewContainer.scrollTop;
@@ -50,7 +57,7 @@ const updatePreview = (resetScroll = false) => {
     if (saveContactBtn) {
         saveContactBtn.addEventListener('click', (e) => {
             e.preventDefault();
-            Utils.downloadVCard(appState.personalInfo, appState.image);
+            Utils.downloadVCard(currentState.personalInfo, currentState.image);
         });
     }
     
@@ -59,7 +66,7 @@ const updatePreview = (resetScroll = false) => {
     featureButtons.forEach((btn, index) => {
         btn.addEventListener('click', (e) => {
             e.preventDefault();
-            const section = appState.featureSections[index];
+            const section = currentState.featureSections[index];
             if (section && section.buttonUrl) {
                 window.open(section.buttonUrl, '_blank');
             }
@@ -78,7 +85,11 @@ const updatePreview = (resetScroll = false) => {
 
 // Gerar conteúdo HTML do cartão
 const generateCardContent = (personalInfo, image, links, featureSections = [], showSaveContactButton = true) => {
-    const { fullName, jobTitle, description, email, phone } = personalInfo;
+    // Garantir que personalInfo existe e tem estrutura básica
+    if (!personalInfo) {
+        personalInfo = { fullName: '', jobTitle: '', description: '', email: '', phone: '' };
+    }
+    const { fullName = '', jobTitle = '', description = '', email = '', phone = '' } = personalInfo;
     
     let content = '';
     
@@ -168,13 +179,14 @@ const generateCardContent = (personalInfo, image, links, featureSections = [], s
     // Links personalizados
     if (links && links.length > 0) {
         content += '<div class="link-buttons">';
+        const stateForLinks = window.appState || appState || {};
         links.forEach(link => {
             const icon = getSocialIcon(link.type);
-            const bg = link.color || appState.design.primaryColor;
+            const bg = link.color || (stateForLinks?.design?.primaryColor || '#00BFFF');
             const text = link.title && link.title.trim() !== '' ? link.title : 'Link';
             const href = link.url && link.url.trim() !== '' ? link.url : '#';
             content += `<a href="${href}" target="_blank" class="link-button" 
-                style="background-color: ${bg}; color: ${appState.design.buttonTextColor};">
+                style="background-color: ${bg}; color: ${stateForLinks?.design?.buttonTextColor || '#FFFFFF'};">
                 <div class="link-icon">
                     <i class="${icon}"></i>
                 </div>
@@ -261,7 +273,9 @@ const captureCardScreenshot = async () => {
 
 // Função para validar se o cartão está completo
 const validateCard = () => {
-    const { personalInfo, links } = appState;
+    const currentState = window.appState || appState;
+    if (!currentState) return ['appState não disponível'];
+    const { personalInfo, links } = currentState;
     const errors = [];
     
     if (!personalInfo.fullName || personalInfo.fullName.trim() === '') {
@@ -284,15 +298,17 @@ const validateCard = () => {
 
 // Função para obter estatísticas do cartão
 const getCardStats = () => {
-    const { personalInfo, links } = appState;
+    const currentState = window.appState || appState;
+    if (!currentState) return {};
+    const { personalInfo, links } = currentState;
     
     return {
-        hasImage: !!appState.image,
-        hasName: !!personalInfo.fullName,
-        hasJobTitle: !!personalInfo.jobTitle,
-        hasDescription: !!personalInfo.description,
-        hasEmail: !!personalInfo.email,
-        hasPhone: !!personalInfo.phone,
+        hasImage: !!currentState.image,
+        hasName: !!personalInfo?.fullName,
+        hasJobTitle: !!personalInfo?.jobTitle,
+        hasDescription: !!personalInfo?.description,
+        hasEmail: !!personalInfo?.email,
+        hasPhone: !!personalInfo?.phone,
         linksCount: links ? links.length : 0,
         isComplete: validateCard().length === 0
     };

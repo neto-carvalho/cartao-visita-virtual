@@ -304,11 +304,16 @@ const initializePersonalInfo = () => {
     Object.keys(inputs).forEach(key => {
         if (inputs[key]) {
             inputs[key].addEventListener('input', async (e) => {
+                // Atualizar appState IMEDIATAMENTE
                 window.appState.personalInfo[key] = e.target.value;
-                await saveData();
+                
+                // Atualizar preview IMEDIATAMENTE (antes do save)
                 if (typeof window.updatePreview === 'function') {
                     window.updatePreview();
                 }
+                
+                // Salvar dados em background (sem bloquear preview)
+                saveData();
             });
         }
     });
