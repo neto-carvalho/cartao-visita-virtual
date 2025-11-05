@@ -1,7 +1,7 @@
 {
   "version": 2,
   "functions": {
-    "api/[...path].js": {
+    "api/index.js": {
       "includeFiles": "backend/**"
     },
     "api/health.js": {}
@@ -10,6 +10,14 @@
     {
       "source": "/health",
       "destination": "/api/health"
+    },
+    {
+      "source": "/api/:path*",
+      "destination": "/api/index"
+    },
+    {
+      "source": "/public/:path*",
+      "destination": "/api/index"
     }
   ]
 }

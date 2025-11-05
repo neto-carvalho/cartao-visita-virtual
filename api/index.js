@@ -1,5 +1,5 @@
-// Catch-all route para todas as requisições da API
-// Este arquivo é o padrão do Vercel para rotas dinâmicas
+// API principal - mapeia para /api/* no Vercel
+// Este arquivo é o ponto de entrada para todas as rotas da API
 
 const express = require('express');
 const cors = require('cors');
@@ -44,15 +44,6 @@ app.use(helmet({
     },
     crossOriginEmbedderPolicy: false
 }));
-
-// Health check
-app.get('/health', (req, res) => {
-    res.status(200).json({
-        success: true,
-        status: 'healthy',
-        timestamp: new Date().toISOString()
-    });
-});
 
 // CORS
 const corsOptions = {
