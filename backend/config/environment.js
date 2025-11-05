@@ -45,13 +45,17 @@ const config = {
 };
 
 // Validação de variáveis obrigatórias em produção
-if (config.NODE_ENV === 'production') {
+// No Vercel, não fazer exit para não quebrar serverless functions
+if (config.NODE_ENV === 'production' && !process.env.VERCEL) {
     const requiredVars = ['JWT_SECRET', 'DATABASE_URL'];
     const missingVars = requiredVars.filter(varName => !process.env[varName]);
     
     if (missingVars.length > 0) {
         console.error('❌ Variáveis de ambiente obrigatórias não encontradas:', missingVars);
-        process.exit(1);
+        // Não fazer exit no Vercel (serverless functions)
+        if (!process.env.VERCEL) {
+            process.exit(1);
+        }
     }
 }
 
