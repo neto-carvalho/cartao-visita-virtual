@@ -1,30 +1,4 @@
 {
-  "rewrites": [
-    {
-      "source": "/api/health",
-      "destination": "/api/health.js"
-    },
-    {
-      "source": "/health",
-      "destination": "/api/health.js"
-    },
-    {
-      "source": "/api/test",
-      "destination": "/api/test.js"
-    },
-    {
-      "source": "/test",
-      "destination": "/api/test.js"
-    },
-    {
-      "source": "/api/:path*",
-      "destination": "/api/index.js"
-    },
-    {
-      "source": "/public/:path*",
-      "destination": "/api/index.js"
-    }
-  ],
   "functions": {
     "api/*.js": {
       "includeFiles": "backend/**",
