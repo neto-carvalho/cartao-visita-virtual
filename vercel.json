@@ -1,15 +1,16 @@
 {
-  "version": 2,
-  "builds": [
-    {
-      "src": "api/**/*.js",
-      "use": "@vercel/node"
-    }
-  ],
   "routes": [
+    {
+      "src": "/api/health",
+      "dest": "/api/health.js"
+    },
     {
       "src": "/health",
       "dest": "/api/health.js"
+    },
+    {
+      "src": "/api/test",
+      "dest": "/api/test.js"
     },
     {
       "src": "/test",
@@ -33,8 +34,9 @@
     }
   ],
   "functions": {
-    "api/**/*.js": {
-      "includeFiles": "backend/**"
+    "api/*.js": {
+      "includeFiles": "backend/**",
+      "maxDuration": 30
     }
   }
 }
