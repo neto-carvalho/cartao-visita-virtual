@@ -616,7 +616,7 @@
         async function loadPublicCard(publicSlug) {
             try {
                 const base = (window.APP_CONFIG && window.APP_CONFIG.API_BASE_URL)
-                    || (window.location.hostname.endsWith('vercel.app') ? 'https://alleged-giralda-visitavirtual-e8216580.koyeb.app' : 'http://localhost:5000');
+                    || (window.location.hostname.endsWith('vercel.app') ? window.location.origin : 'http://localhost:5000');
                 const resp = await fetch(`${base}/public/cards/url/${encodeURIComponent(publicSlug)}`);
                 const json = await resp.json();
                 if (!resp.ok || !json?.success) {
@@ -678,7 +678,7 @@
             // SEGUNDO: Buscar na API (autenticada ou pública) ANTES do CardsManager
             try {
                 const base = (window.APP_CONFIG && window.APP_CONFIG.API_BASE_URL)
-                    || (window.location.hostname.endsWith('vercel.app') ? 'https://alleged-giralda-visitavirtual-e8216580.koyeb.app' : 'http://localhost:5000');
+                    || (window.location.hostname.endsWith('vercel.app') ? window.location.origin : 'http://localhost:5000');
                 const token = (typeof localStorage !== 'undefined') ? localStorage.getItem('auth_token') : null;
                 if (cardId) {
                     // 2A) Tentar autenticado
@@ -970,7 +970,7 @@
             // Disparar métrica de share ao clicar em links e botões de seção (não bloqueante)
             try {
                 const base = (window.APP_CONFIG && window.APP_CONFIG.API_BASE_URL)
-                    || (window.location.hostname.endsWith('vercel.app') ? 'https://alleged-giralda-visitavirtual-e8216580.koyeb.app' : 'http://localhost:5000');
+                    || (window.location.hostname.endsWith('vercel.app') ? window.location.origin : 'http://localhost:5000');
                 const id = window.currentCardId || new URLSearchParams(window.location.search).get('id');
                 if (id) {
                     container.querySelectorAll('.link-button, .feature-action-btn').forEach(btn => {
@@ -1119,7 +1119,7 @@
             // Registrar share (não bloqueante)
             try {
                 const base = (window.APP_CONFIG && window.APP_CONFIG.API_BASE_URL)
-                    || (window.location.hostname.endsWith('vercel.app') ? 'https://alleged-giralda-visitavirtual-e8216580.koyeb.app' : 'http://localhost:5000');
+                    || (window.location.hostname.endsWith('vercel.app') ? window.location.origin : 'http://localhost:5000');
                 const id = window.currentCardId || new URLSearchParams(window.location.search).get('id');
                 if (id) {
                     fetch(`${base}/public/cards/${encodeURIComponent(id)}/share`, { method: 'POST' }).catch(()=>{});
@@ -1142,7 +1142,7 @@
             // Registrar share (não bloqueante)
             try {
                 const base = (window.APP_CONFIG && window.APP_CONFIG.API_BASE_URL)
-                    || (window.location.hostname.endsWith('vercel.app') ? 'https://alleged-giralda-visitavirtual-e8216580.koyeb.app' : 'http://localhost:5000');
+                    || (window.location.hostname.endsWith('vercel.app') ? window.location.origin : 'http://localhost:5000');
                 const id = window.currentCardId || new URLSearchParams(window.location.search).get('id');
                 if (id) {
                     fetch(`${base}/public/cards/${encodeURIComponent(id)}/share`, { method: 'POST' }).catch(()=>{});
