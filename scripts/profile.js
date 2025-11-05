@@ -202,7 +202,7 @@ const loadStats = async () => {
             totalShares: apiCardsCache.reduce((s, c) => s + (c.shares || 0), 0),
             totalContacts: apiCardsCache.reduce((s, c) => s + (c.contacts || 0), 0)
         };
-        updateStatCard('total-cards', stats.totalCards, `+${stats.activeCards} ativos`);
+    updateStatCard('total-cards', stats.totalCards, `+${stats.activeCards} ativos`);
         updateStatCard('total-views', formatNumber(stats.totalViews), '');
         updateStatCard('total-shares', formatNumber(stats.totalShares), '');
         updateStatCard('total-contacts', formatNumber(stats.totalContacts), '');
@@ -316,7 +316,7 @@ const loadCards = async (filter = null, searchQuery = null) => {
             createdAt: c.createdAt,
             updatedAt: c.updatedAt
         }));
-
+        
         // Renderizar
         console.log('🎨 Renderizando cartões...');
         renderCards(cards);
@@ -488,7 +488,7 @@ window.viewCard = (cardId, publicUrl = '') => {
     if (publicUrl) {
         window.open(`view-card.html?public=${encodeURIComponent(publicUrl)}`, '_blank');
     } else {
-        window.open(`view-card.html?id=${cardId}`, '_blank');
+    window.open(`view-card.html?id=${cardId}`, '_blank');
     }
 };
 
@@ -1291,7 +1291,7 @@ const loadFavorites = async () => {
                 contacts: card.contacts || 0
             }));
         renderFavorites(cards);
-        initializeFavoritesSearch();
+    initializeFavoritesSearch();
     } catch (e) {
         console.error('❌ Erro ao carregar favoritos:', e);
         container.innerHTML = '<p class="empty-text">Erro ao carregar favoritos.</p>';

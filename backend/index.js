@@ -71,12 +71,12 @@ const corsOptions = {
         const allowedPatterns = [
             /^https?:\/\/([a-z0-9-]+\.)*vercel\.app$/i
         ];
-
+        
         // Permitir requisições sem origin (health checks, servidores, Postman, etc)
         if (!origin) {
             return callback(null, true);
         }
-
+        
         const isAllowed =
             allowedOrigins.includes(origin) ||
             allowedPatterns.some((re) => re.test(origin));
