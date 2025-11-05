@@ -1,6 +1,6 @@
-# Ignorar arquivos que podem interferir
-node_modules/
+# Ignorar apenas arquivos desnecessários
 .git/
-.env
+node_modules/
 *.log
-
+.env
+.env.local
