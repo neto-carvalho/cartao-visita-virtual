@@ -2,10 +2,6 @@
   "version": 2,
   "builds": [
     {
-      "src": "package.json",
-      "use": "@vercel/static-build"
-    },
-    {
       "src": "api/health.js",
       "use": "@vercel/node"
     },
@@ -14,7 +10,7 @@
       "use": "@vercel/node"
     },
     {
-      "src": "api/index.js",
+      "src": "api/[...path].js",
       "use": "@vercel/node"
     }
   ],
@@ -29,11 +25,11 @@
     },
     {
       "src": "/api/(.*)",
-      "dest": "/api/index.js"
+      "dest": "/api/[...path].js"
     },
     {
       "src": "/public/(.*)",
-      "dest": "/api/index.js"
+      "dest": "/api/[...path].js"
     },
     {
       "src": "/(.*\\.(html|css|js|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|eot))",
