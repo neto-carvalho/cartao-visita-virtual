@@ -1,36 +1,28 @@
 {
-  "routes": [
+  "rewrites": [
     {
-      "src": "/api/health",
-      "dest": "/api/health.js"
+      "source": "/api/health",
+      "destination": "/api/health.js"
     },
     {
-      "src": "/health",
-      "dest": "/api/health.js"
+      "source": "/health",
+      "destination": "/api/health.js"
     },
     {
-      "src": "/api/test",
-      "dest": "/api/test.js"
+      "source": "/api/test",
+      "destination": "/api/test.js"
     },
     {
-      "src": "/test",
-      "dest": "/api/test.js"
+      "source": "/test",
+      "destination": "/api/test.js"
     },
     {
-      "src": "/api/(.*)",
-      "dest": "/api/index.js"
+      "source": "/api/:path*",
+      "destination": "/api/index.js"
     },
     {
-      "src": "/public/(.*)",
-      "dest": "/api/index.js"
-    },
-    {
-      "src": "/(.*\\.(html|css|js|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|eot))",
-      "dest": "/$1"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/index.html"
+      "source": "/public/:path*",
+      "destination": "/api/index.js"
     }
   ],
   "functions": {
