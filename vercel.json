@@ -1,21 +1,34 @@
 {
-  "rewrites": [
+  "version": 2,
+  "routes": [
     {
-      "source": "/health",
-      "destination": "/api/health"
+      "src": "/health",
+      "dest": "/api/health.js"
     },
     {
-      "source": "/test",
-      "destination": "/api/test"
+      "src": "/test",
+      "dest": "/api/test.js"
     },
     {
-      "source": "/api/:path*",
-      "destination": "/api/index"
+      "src": "/api/(.*)",
+      "dest": "/api/index.js"
     },
     {
-      "source": "/public/:path*",
-      "destination": "/api/index"
+      "src": "/public/(.*)",
+      "dest": "/api/index.js"
+    },
+    {
+      "src": "/(.*\\.(html|css|js|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|eot))",
+      "dest": "/$1"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
     }
-  ]
+  ],
+  "functions": {
+    "api/*.js": {
+      "includeFiles": "backend/**"
+    }
+  }
 }
-
