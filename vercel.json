@@ -1,5 +1,4 @@
 {
-  "version": 2,
   "rewrites": [
     {
       "source": "/health",
@@ -10,11 +9,11 @@
       "destination": "/api/test"
     },
     {
-      "source": "/api/:path*",
+      "source": "/api/(.*)",
       "destination": "/api/index"
     },
     {
-      "source": "/public/:path*",
+      "source": "/public/(.*)",
       "destination": "/api/index"
     }
   ]
