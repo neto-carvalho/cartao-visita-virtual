@@ -2,15 +2,7 @@
   "version": 2,
   "builds": [
     {
-      "src": "api/health.js",
-      "use": "@vercel/node"
-    },
-    {
-      "src": "api/test.js",
-      "use": "@vercel/node"
-    },
-    {
-      "src": "api/index.js",
+      "src": "api/**/*.js",
       "use": "@vercel/node"
     }
   ],
@@ -41,7 +33,7 @@
     }
   ],
   "functions": {
-    "api/*.js": {
+    "api/**/*.js": {
       "includeFiles": "backend/**"
     }
   }
