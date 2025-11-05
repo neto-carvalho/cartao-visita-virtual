@@ -2,7 +2,15 @@
   "version": 2,
   "builds": [
     {
-      "src": "api/**/*.js",
+      "src": "api/health.js",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "api/test.js",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "api/index.js",
       "use": "@vercel/node"
     }
   ],
@@ -12,7 +20,15 @@
       "dest": "/api/health.js"
     },
     {
+      "src": "/health",
+      "dest": "/api/health.js"
+    },
+    {
       "src": "/api/test",
+      "dest": "/api/test.js"
+    },
+    {
+      "src": "/test",
       "dest": "/api/test.js"
     },
     {
@@ -28,7 +44,7 @@
       "dest": "/$1"
     },
     {
-      "src": "/(.*)",
+      "src": "/(?!api)(.*)",
       "dest": "/index.html"
     }
   ],
