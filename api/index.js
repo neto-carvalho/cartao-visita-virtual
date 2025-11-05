@@ -157,11 +157,23 @@ const connectDatabase = async () => {
 };
 
 // Exportar handler para Vercel Serverless Functions
+// Vercel espera um handler padrão que recebe (req, res)
 module.exports = async (req, res) => {
-    // Conectar ao banco antes de processar a requisição
-    await connectDatabase();
-    
-    // Passar a requisição para o Express
-    app(req, res);
+    try {
+        // Conectar ao banco antes de processar a requisição
+        await connectDatabase();
+        
+        // Passar a requisição para o Express
+        app(req, res);
+    } catch (error) {
+        console.error('Erro no handler:', error);
+        if (!res.headersSent) {
+            res.status(500).json({
+                success: false,
+                message: 'Erro interno do servidor',
+                error: process.env.NODE_ENV === 'development' ? error.message : undefined
+            });
+        }
+    }
 };
 
