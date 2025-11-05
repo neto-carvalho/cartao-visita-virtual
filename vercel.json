@@ -1,15 +1,13 @@
 {
   "version": 2,
-  "functions": {
-    "api/index.js": {
-      "includeFiles": "backend/**"
-    },
-    "api/health.js": {}
-  },
   "rewrites": [
     {
       "source": "/health",
       "destination": "/api/health"
+    },
+    {
+      "source": "/test",
+      "destination": "/api/test"
     },
     {
       "source": "/api/:path*",
