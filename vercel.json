@@ -3,7 +3,14 @@
   "functions": {
     "api/[...path].js": {
       "includeFiles": "backend/**"
+    },
+    "api/health.js": {}
+  },
+  "rewrites": [
+    {
+      "source": "/health",
+      "destination": "/api/health"
     }
-  }
+  ]
 }
 
